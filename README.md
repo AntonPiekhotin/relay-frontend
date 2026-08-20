@@ -13,8 +13,13 @@ The backend must be running — see [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.m
 
 ## Status
 
-Scaffold only. The contract types (`src/lib/protocol/types.ts`, `src/lib/api/types.ts`) are written;
-no features are built yet. Start at Phase 0 of [docs/ROADMAP.md](docs/ROADMAP.md).
+All phases of [docs/ROADMAP.md](docs/ROADMAP.md) are implemented: auth, dialogs and history,
+sending through a persisted outbox, the live socket with the full reconnect sequence, read state,
+presence and typing, groups, and calls (WebRTC 1:1, LiveKit for groups).
+
+Verified by `npm run typecheck`, `npm run lint` and `npm run test`. **Not yet exercised against a
+running backend** — bring one up per [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md) before trusting
+any of it end to end.
 
 ## Docs
 

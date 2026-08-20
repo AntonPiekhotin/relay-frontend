@@ -138,11 +138,13 @@ The backend must be running for anything past the login screen: `docs/BACKEND-SE
 
 ## Build order
 
-- [ ] 0. Scaffold — router, query client, auth store, login/register  ← *next*
-- [ ] 1. Dialog list + history — cursor pagination, dialog naming
-- [ ] 2. Send — outbox, optimistic UI, ack correlation, retry
-- [ ] 3. Live — socket lifecycle, reconnect + catch-up, `message.new`
-- [ ] 4. Read state — cursors, unread badges, read ticks
-- [ ] 5. Presence and typing — per-dialog subscribe, throttling
-- [ ] 6. Groups — create, manage, system messages, seen-by
-- [ ] 7. Calls — direct (WebRTC + TURN), then group (LiveKit)
+- [x] 0. Scaffold — router, query client, auth store, login/register
+- [x] 1. Dialog list + history — cursor pagination, dialog naming
+- [x] 2. Send — outbox, optimistic UI, ack correlation, retry
+- [x] 3. Live — socket lifecycle, reconnect + catch-up, `message.new`
+- [x] 4. Read state — cursors, unread badges, read ticks
+- [x] 5. Presence and typing — per-dialog subscribe, throttling
+- [x] 6. Groups — create, manage, system messages, seen-by
+- [x] 7. Calls — direct (WebRTC + TURN), then group (LiveKit)
+
+All phases are built; nothing has been run against a live backend yet.
