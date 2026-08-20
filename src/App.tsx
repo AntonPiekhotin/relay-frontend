@@ -1,26 +1,17 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
+/**
+ * Placeholder shell. Replace with the router + AppLayout described in docs/UI.md §2.
+ * Build order is docs/ROADMAP.md — start at Phase 0.
+ */
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
+    <div className="flex h-full items-center justify-center">
+      <div className="max-w-md space-y-3 text-center">
+        <h1 className="text-2xl font-semibold">Relay</h1>
+        <p className="text-sm text-zinc-400">
+          Nothing is built yet. Read <code className="text-accent">CLAUDE.md</code>, then start at
+          Phase 0 in <code className="text-accent">docs/ROADMAP.md</code>.
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      </div>
     </div>
-  );
+  )
 }
-
-export default App;

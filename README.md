@@ -1,46 +1,45 @@
-# Getting Started with Create React App
+# Relay Web
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React/TypeScript web client for the [Relay](../../IdeaProjects/relay) messenger backend.
 
-## Available Scripts
+**React 19 · TypeScript 5.7 · Vite 6 · Tailwind CSS v4 · TanStack Query · Zustand · React Router 7**
 
-In the project directory, you can run:
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
 
-### `npm start`
+The backend must be running — see [docs/BACKEND-SETUP.md](docs/BACKEND-SETUP.md).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Status
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Scaffold only. The contract types (`src/lib/protocol/types.ts`, `src/lib/api/types.ts`) are written;
+no features are built yet. Start at Phase 0 of [docs/ROADMAP.md](docs/ROADMAP.md).
 
-### `npm test`
+## Docs
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Agents and humans should read [CLAUDE.md](CLAUDE.md) first — it holds the invariants.
 
-### `npm run build`
+| Doc | Covers |
+|---|---|
+| [PROTOCOL-CLIENT.md](docs/PROTOCOL-CLIENT.md) | WebSocket frames, envelope, error codes |
+| [REST-API.md](docs/REST-API.md) | Every HTTP endpoint, auth, avatars |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, folder layout, which store owns what |
+| [MESSAGING.md](docs/MESSAGING.md) | Outbox, idempotency, history merge, read state |
+| [REALTIME.md](docs/REALTIME.md) | Socket lifecycle, reconnect, presence, typing |
+| [CALLS.md](docs/CALLS.md) | Direct calls (WebRTC/TURN), group calls (LiveKit) |
+| [UI.md](docs/UI.md) | Screens, components, Tailwind conventions |
+| [ROADMAP.md](docs/ROADMAP.md) | Phased build order |
+| [BACKEND-SETUP.md](docs/BACKEND-SETUP.md) | Running the backend locally |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## One thing to know before you start
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The backend has **no CORS configuration**, and websocket-gateway enforces same-origin on the WS
+handshake. Everything goes through the Vite dev proxy (`/api` → `:8080`, `/ws` → `:8083`) as
+**paths, never hosts**. A direct call to `localhost:8080` is blocked by CORS; a direct WebSocket to
+`localhost:8083` is answered `403`. See [ARCHITECTURE.md §2](docs/ARCHITECTURE.md).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## `.cra-backup/`
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+The original Create React App scaffold, moved aside rather than deleted. Safe to remove
+(`rm -rf .cra-backup`) once you are happy with the Vite setup.
