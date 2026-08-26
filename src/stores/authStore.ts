@@ -17,10 +17,9 @@ import { ApiError, configureApiAuth } from '@/lib/api/client'
 import * as authApi from '@/lib/api/auth'
 import type { TokenResponse } from '@/lib/api/types'
 
-/** Refresh at this fraction of the access token's lifetime. */
 const PROACTIVE_REFRESH_RATIO = 0.8
-/** Never schedule a refresh closer than this — a pathologically short token would spin. */
 const MIN_REFRESH_DELAY_MS = 5_000
+const REFRESH_RETRY_DELAY_MS = 30_000
 
 interface AuthState {
   accessToken: string | null
@@ -74,17 +73,6 @@ export const useAuthStore = create<AuthState>()(
   ),
 )
 
-/**
- * `localStorage` is synchronous, so persisted state has already been read back by the time this
- * module finishes evaluating. The flag exists so the route guard does not bounce a reloading user
- * to /login before their tokens are visible.
- *
- * This runs here rather than in `onRehydrateStorage`, whose callback fires during `create()` —
- * while the `useAuthStore` binding is still in its temporal dead zone.
- */
-useAuthStore.setState({ hydrated: true })
-if (useAuthStore.getState().refreshToken) scheduleProactiveRefresh()
-
 // ─── Refresh ─────────────────────────────────────────────────────────────────
 
 /**
@@ -116,10 +104,15 @@ function scheduleProactiveRefresh(): void {
   }, delay)
 }
 
-/**
- * Refresh the access token. Every concurrent caller awaits the same promise — this is the
- * single-flight guarantee the whole 401 path depends on.
- */
+function scheduleRefreshRetry(): void {
+  clearRefreshTimer()
+  if (!useAuthStore.getState().refreshToken) return
+
+  refreshTimer = setTimeout(() => {
+    void refreshSession()
+  }, REFRESH_RETRY_DELAY_MS)
+}
+
 export function refreshSessionDetailed(): Promise<RefreshOutcome> {
   if (refreshInFlight) return refreshInFlight
 
@@ -132,11 +125,13 @@ export function refreshSessionDetailed(): Promise<RefreshOutcome> {
       useAuthStore.getState().setSession(tokens)
       return 'ok'
     })
-    // Only the server SAYING no ends the session. A 502 from the proxy while the backend restarts,
-    // or a network failure, must leave the tokens alone — otherwise a restart signs everybody out.
     .catch((error: unknown): RefreshOutcome =>
       error instanceof ApiError && error.isClient ? 'invalid' : 'unreachable',
     )
+    .then((outcome): RefreshOutcome => {
+      if (outcome === 'unreachable') scheduleRefreshRetry()
+      return outcome
+    })
     .finally(() => {
       refreshInFlight = null
     })
@@ -144,12 +139,10 @@ export function refreshSessionDetailed(): Promise<RefreshOutcome> {
   return refreshInFlight
 }
 
-/** The boolean the REST client's 401 path wants: only a fresh token lets it retry. */
 export function refreshSession(): Promise<boolean> {
   return refreshSessionDetailed().then((outcome) => outcome === 'ok')
 }
 
-/** Best-effort server-side logout, then local teardown. Never blocks the UI on the network. */
 export function signOut(): void {
   const { refreshToken } = useAuthStore.getState()
   if (refreshToken) void authApi.logout(refreshToken).catch(() => undefined)
@@ -165,8 +158,13 @@ export function currentAccessToken(): string | null {
   return useAuthStore.getState().accessToken
 }
 
-configureApiAuth({
-  getAccessToken: () => useAuthStore.getState().accessToken,
-  refresh: refreshSession,
-  logout: () => useAuthStore.getState().signOut(),
-})
+export function initAuth(): void {
+  configureApiAuth({
+    getAccessToken: () => useAuthStore.getState().accessToken,
+    refresh: refreshSession,
+    logout: () => useAuthStore.getState().signOut(),
+  })
+
+  useAuthStore.setState({ hydrated: true })
+  if (useAuthStore.getState().refreshToken) scheduleProactiveRefresh()
+}

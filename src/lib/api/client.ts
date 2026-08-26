@@ -4,8 +4,9 @@
  * `VITE_API_BASE` is read here and nowhere else (docs/ARCHITECTURE.md §6). It is a PATH — the
  * backend has no CORS configuration, so a cross-origin fetch never reaches Spring (§2).
  *
- * Auth is injected rather than imported: `authStore` calls `configureApiAuth` at module init, which
- * keeps this module free of any store import and the dependency graph acyclic.
+ * Auth is injected rather than imported: the app entry calls `initAuth()`, which calls
+ * `configureApiAuth` — that keeps this module free of any store import and the graph acyclic.
+ * Until then `getAccessToken` is unset and requests go out unauthenticated.
  */
 
 import type { RestErrorBody } from './types'

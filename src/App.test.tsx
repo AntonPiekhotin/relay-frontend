@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { initAuth } from '@/stores/authStore'
 import App from './App'
 
 /**
@@ -7,6 +8,11 @@ import App from './App'
  * screen, and the app mounts without touching the network.
  */
 describe('App', () => {
+  // What `main.tsx` does on boot; without it the guard sits on its spinner waiting to be hydrated.
+  beforeEach(() => {
+    initAuth()
+  })
+
   it('lands on the sign-in screen when there is no session', async () => {
     render(<App />)
 
