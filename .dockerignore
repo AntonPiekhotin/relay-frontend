@@ -1,0 +1,8 @@
+# An allowlist, not a denylist. The image copies exactly two things — a built `dist/` and one
+# nginx conf — so everything else is context the daemon uploads for nothing. `node_modules` alone
+# is a few hundred MB, and `.cra-backup` is a second whole scaffold.
+#
+# `*` does not cross `/`, so re-including `dist` re-includes everything under it.
+*
+!dist
+!deploy-nginx.conf
