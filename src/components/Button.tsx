@@ -23,9 +23,10 @@ const SIZES: Record<Size, string> = {
   icon: 'size-10',
 }
 
-export function Button({ variant = 'primary', size = 'md', className = '', ...props }: ButtonProps) {
+export function Button({ variant = 'primary', size = 'md', className = '', type = 'button', ...props }: ButtonProps) {
   return (
     <button
+      type={type}
       {...props}
       className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
