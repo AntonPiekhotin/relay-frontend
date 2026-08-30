@@ -6,10 +6,12 @@
  * allowed to fail loudly: audio is feedback, and a browser that refuses to make a sound must not
  * take the call down with it. Every entry point swallows its own errors.
  *
- * Autoplay: an `AudioContext` starts suspended until a user gesture resumes it. Every tone below is
- * started from inside a click handler's call stack (placing a call, answering one), which is that
- * gesture — so the `resume()` is granted. If a browser refuses anyway, the call still works; it is
- * just silent.
+ * Autoplay: an `AudioContext` starts suspended until the page has been activated by a user gesture.
+ * An *outgoing* call always has one — the user clicked to place it — but an **incoming** call does
+ * not: it arrives on the socket, with no gesture anywhere near it. That is what `primeAudio` is
+ * for. It unlocks the context on the first interaction of the session, so the ringtone can sound
+ * for a call that arrives an hour later. If a browser refuses anyway, the call still works and the
+ * toast still shows; it is just silent.
  */
 
 /** 440 + 480 Hz is the ringback pair every telephone network uses. It reads as "ringing". */
@@ -18,12 +20,30 @@ const RINGBACK_HZ = [440, 480]
 const RINGBACK_BURST_S = 1.2
 const RINGBACK_CYCLE_MS = 3600
 
+/**
+ * The incoming ringtone is deliberately nothing like the ringback: an alternating two-pitch figure
+ * against the ringback's flat drone. The two can never play at once, but the user must still be
+ * able to tell, without looking, whether their own call is ringing or somebody is calling them.
+ */
+const RINGTONE_HZ = [660, 880]
+const RINGTONE_NOTE_S = 0.18
+const RINGTONE_GAP_S = 0.22
+const RINGTONE_CYCLE_MS = 2600
+
 /** Well under a notification's loudness — this plays while the user is staring at the call UI. */
 const RINGBACK_GAIN = 0.05
+/** A shade louder: a ringtone has to carry to somebody who is not looking at the tab. */
+const RINGTONE_GAIN = 0.08
 const CHIME_GAIN = 0.09
 
+const GESTURES = ['pointerdown', 'keydown', 'touchstart'] as const
+
 let ctx: AudioContext | null = null
-let ringbackTimer: ReturnType<typeof setInterval> | null = null
+/**
+ * The one repeating tone, whichever it is. A single handle is what makes ringback and ringtone
+ * mutually exclusive by construction rather than by every caller remembering to stop the other.
+ */
+let loopTimer: ReturnType<typeof setInterval> | null = null
 
 function audio(): AudioContext | null {
   try {
@@ -64,30 +84,72 @@ function burst(context: AudioContext, at: number, seconds: number, frequencies: 
 }
 
 /**
- * The caller's ringback: it plays until the callee answers, declines, or the ring times out.
- * Idempotent — calling it twice does not stack two cadences on top of each other.
+ * Unlock the audio context on the first user gesture of the session, so a call that arrives later
+ * — with no gesture of its own — can still make a sound. Safe to call before there is any call.
  */
-export function startRingback(): void {
-  if (ringbackTimer !== null) return
+export function primeAudio(): void {
+  const unlock = () => {
+    audio()
+    for (const type of GESTURES) window.removeEventListener(type, unlock)
+  }
   try {
-    const context = audio()
-    if (!context) return
-    burst(context, context.currentTime, RINGBACK_BURST_S, RINGBACK_HZ, RINGBACK_GAIN)
-    // Scheduled a cycle at a time rather than as one long chain, so stopping is immediate and
-    // nothing stays queued on the audio thread after the call is gone.
-    ringbackTimer = setInterval(() => {
-      const live = ctx
-      if (live) burst(live, live.currentTime, RINGBACK_BURST_S, RINGBACK_HZ, RINGBACK_GAIN)
-    }, RINGBACK_CYCLE_MS)
+    for (const type of GESTURES) window.addEventListener(type, unlock, { passive: true })
   } catch {
-    stopRingback()
+    // No window, or listeners refused: the tones simply stay locked.
   }
 }
 
-export function stopRingback(): void {
-  if (ringbackTimer === null) return
-  clearInterval(ringbackTimer)
-  ringbackTimer = null
+/**
+ * Play `pattern` now and again every `cycleMs` until something stops it. Scheduled a cycle at a
+ * time rather than as one long chain, so stopping is immediate and nothing stays queued on the
+ * audio thread after the call is gone.
+ */
+function loop(cycleMs: number, pattern: (context: AudioContext) => void): void {
+  // Whatever was ringing is not what should be ringing now — there is only ever one.
+  stopRinging()
+  try {
+    const context = audio()
+    if (!context) return
+    pattern(context)
+    loopTimer = setInterval(() => {
+      const live = ctx
+      if (live) pattern(live)
+    }, cycleMs)
+  } catch {
+    stopRinging()
+  }
+}
+
+/** The caller's ringback: it plays until the callee answers, declines, or the ring times out. */
+export function startRingback(): void {
+  loop(RINGBACK_CYCLE_MS, (context) => {
+    burst(context, context.currentTime, RINGBACK_BURST_S, RINGBACK_HZ, RINGBACK_GAIN)
+  })
+}
+
+/** The callee's ringtone: somebody is calling you. Plays until the call is answered or gone. */
+export function startRingtone(): void {
+  loop(RINGTONE_CYCLE_MS, (context) => {
+    const start = context.currentTime
+    // Four notes alternating between the pair, the last one held — a figure, not a beep.
+    RINGTONE_HZ.concat(RINGTONE_HZ).forEach((hz, index) => {
+      const last = index === RINGTONE_HZ.length * 2 - 1
+      burst(
+        context,
+        start + index * RINGTONE_GAP_S,
+        last ? RINGTONE_NOTE_S * 1.6 : RINGTONE_NOTE_S,
+        [hz],
+        RINGTONE_GAIN,
+      )
+    })
+  })
+}
+
+/** Stop whichever of the two is ringing. Idempotent, and the only way either of them ends. */
+export function stopRinging(): void {
+  if (loopTimer === null) return
+  clearInterval(loopTimer)
+  loopTimer = null
 }
 
 /** Two rising notes the moment the peer picks up — the audible half of "you are connected now". */

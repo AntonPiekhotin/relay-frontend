@@ -23,7 +23,10 @@ import type {
   CallSignalPayload,
 } from '@/lib/protocol/types'
 import { acquireLocalMedia, mediaErrorMessage, stopStream } from './media'
-import { playConnected, playEnded, startRingback, stopRingback } from './tones'
+// Ringing itself is not commanded from here: it is derived from the call state in `./ringing`.
+// Only the one-shot chimes, which are events rather than states, are played explicitly.
+import { playConnected, playEnded } from './tones'
+import { silenceRinging } from './ringing'
 
 /**
  * `CallSignal` ends in an open `{ verb: string; [key: string]: unknown }` member so an unknown verb
@@ -101,7 +104,6 @@ export async function startDirectCall(peerId: string, media: CallMedia, dialogId
     store.setMic(true)
     store.setCamera(media === 'video')
     store.bumpMedia()
-    startRingback()
   } catch {
     endCall('Could not start the call.')
   } finally {
@@ -118,6 +120,7 @@ export async function acceptIncomingCall(): Promise<void> {
   const call = store.call
   if (call.kind !== 'incoming' || settingUp) return
   settingUp = true
+  silenceRinging()
 
   try {
     localStream = await acquireLocalMedia(call.media)
@@ -249,8 +252,8 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
       if (call.kind !== 'outgoing' || call.callId !== payload.call_id || !pc) return
       await pc.setRemoteDescription({ type: 'answer', sdp: (signal as SignalOf<'accept'>).sdp })
       await drainBufferedCandidates()
-      stopRingback()
-      playConnected()
+      // The chime comes after the state change, so the ringback has already been silenced by it
+      // rather than overlapping the first note.
       store.setCall({
         kind: 'connected',
         callId: call.callId,
@@ -258,6 +261,7 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
         media: call.media,
         startedAt: Date.now(),
       })
+      playConnected()
       store.bumpMedia()
       return
     }
@@ -386,8 +390,6 @@ function endCall(message: string | null): void {
 /** Stop every track, close the connection, null it out. A stale `pc` throws on a late candidate. */
 export function teardown(): void {
   settingUp = false
-  // Unconditional: a ringback that outlives the call it belongs to is the worst possible bug here.
-  stopRingback()
   stopStream(localStream)
   stopStream(remoteStream)
   localStream = null

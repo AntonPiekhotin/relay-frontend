@@ -14,6 +14,7 @@ import { currentSessionId } from '@/stores/socketStore'
 import { currentUserId } from '@/stores/authStore'
 import type { GroupCallResponse } from '@/lib/api/types'
 import type { CallMedia, CallSignalPayload, GroupCallParticipantWire } from '@/lib/protocol/types'
+import { silenceRinging } from './ringing'
 
 type SignalOf<V extends string> = Extract<CallSignalPayload['signal'], { verb: V }>
 
@@ -61,6 +62,7 @@ export async function joinIncomingGroupCall(): Promise<void> {
   const call = store.call
   if (call.kind !== 'group-ringing' || settingUp) return
   settingUp = true
+  silenceRinging()
 
   const sessionId = currentSessionId()
   try {
@@ -78,6 +80,7 @@ export async function joinIncomingGroupCall(): Promise<void> {
 export async function declineIncomingGroupCall(reason = 'declined'): Promise<void> {
   const call = useCallStore.getState().call
   if (call.kind !== 'group-ringing') return
+  silenceRinging()
   const sessionId = currentSessionId()
   await declineGroupCall(call.callId, reason, sessionId).catch(() => undefined)
   teardownGroup()
