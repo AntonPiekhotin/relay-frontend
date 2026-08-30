@@ -260,7 +260,7 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
     }
 
     case 'reject':
-      if (activeDirectCallId() === payload.call_id) endCall('Call declined.')
+      if (activeDirectCallId() === payload.call_id) endCall(null)
       return
 
     case 'hangup':
@@ -268,7 +268,7 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
       return
 
     case 'missed':
-      if (activeDirectCallId() === payload.call_id) endCall('No answer.')
+      if (activeDirectCallId() === payload.call_id) endCall(null)
       return
 
     /**
