@@ -45,7 +45,7 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
 
   return (
     <form
-      className="flex items-end gap-2 border-t border-border-subtle p-3"
+      className="flex items-end gap-2 border-t border-border-subtle p-2 sm:p-3"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
@@ -57,8 +57,9 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
         value={text}
         aria-label="Message"
         placeholder="Write a message…"
-        className="max-h-40 min-h-10 flex-1 resize-none rounded-lg border border-border-subtle bg-surface-raised
-          px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-accent focus:outline-none"
+        className="max-h-40 min-h-10 w-full min-w-0 flex-1 resize-none rounded-lg border border-border-subtle
+          bg-surface-raised px-3 py-2 text-base text-zinc-100 placeholder:text-zinc-500 focus:border-accent
+          focus:outline-none sm:text-sm"
         onChange={(e) => {
           setText(e.target.value)
           resize()
@@ -72,7 +73,7 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
           }
         }}
       />
-      <Button type="submit" disabled={!text.trim() || disabled}>
+      <Button type="submit" className="shrink-0" disabled={!text.trim() || disabled}>
         Send
       </Button>
     </form>

@@ -43,7 +43,7 @@ export function GroupCreatePage() {
   const canCreate = title.trim().length > 0 && members.length >= 1
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-6 overflow-y-auto p-6">
+    <div className="mx-auto w-full max-w-lg space-y-6 overflow-y-auto p-4 sm:p-6">
       <h1 className="text-lg font-semibold">New group</h1>
 
       <Input label="Group name" value={title} onChange={(e) => setTitle(e.target.value)} required />

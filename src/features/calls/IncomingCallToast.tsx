@@ -21,7 +21,8 @@ export function IncomingCallToast() {
     <div
       role="dialog"
       aria-label="Incoming call"
-      className="fixed right-4 top-4 z-50 w-80 space-y-3 rounded-xl border border-border-subtle bg-surface-raised p-4 shadow-xl"
+      className="fixed inset-x-4 top-4 z-50 space-y-3 rounded-xl border border-border-subtle bg-surface-raised
+        p-4 shadow-xl sm:left-auto sm:w-80"
     >
       <div className="flex items-center gap-3">
         <Avatar

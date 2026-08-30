@@ -8,4 +8,17 @@
 }
 
 html, body, #root { height: 100%; }
-body { @apply bg-surface text-zinc-100 antialiased; }
+
+/* Mobile browsers shrink the visual viewport as the URL bar retracts; `dvh` follows it, so the
+   composer stays on screen instead of being pushed under the chrome. */
+@supports (height: 100dvh) {
+  html, body, #root { height: 100dvh; }
+}
+
+body {
+  @apply bg-surface text-zinc-100 antialiased;
+  /* A chat has no horizontal axis. Anything wider than the viewport is a bug, and scrolling to it
+     only hides the bug — clamp it here so it shows up as clipping instead. */
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}

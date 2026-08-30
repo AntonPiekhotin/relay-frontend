@@ -86,7 +86,7 @@ export function GroupInfoPage() {
   const remainingSlots = MAX_MEMBERS_INCLUDING_ME - dialog.data.participantIds.length - adding.length
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-8 overflow-y-auto p-6">
+    <div className="mx-auto w-full max-w-lg space-y-8 overflow-y-auto p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">{dialog.data.title ?? 'Group'}</h1>
         <Link to={`/d/${dialogId}`} className="text-sm text-accent hover:underline">

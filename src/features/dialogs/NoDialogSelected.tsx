@@ -5,7 +5,7 @@ export function NoDialogSelected() {
     <div className="flex h-full items-center justify-center">
       <EmptyState
         title="Pick a conversation"
-        hint="Choose one on the left, or find someone in Contacts to start a new one."
+        hint="Pick one from your conversations, or find someone in Contacts to start a new one."
       />
     </div>
   )

@@ -18,8 +18,8 @@ export function Input({ label, className = '', id, ...props }: InputProps) {
       <input
         {...props}
         id={inputId}
-        className={`h-10 w-full rounded-lg border border-border-subtle bg-surface-raised px-3 text-sm
-          text-zinc-100 placeholder:text-zinc-500 focus:border-accent focus:outline-none ${className}`}
+        className={`h-10 w-full rounded-lg border border-border-subtle bg-surface-raised px-3 text-base
+          text-zinc-100 placeholder:text-zinc-500 focus:border-accent focus:outline-none sm:text-sm ${className}`}
       />
     </div>
   )

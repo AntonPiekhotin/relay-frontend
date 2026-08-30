@@ -143,7 +143,7 @@ export function ChatPane() {
 
   return (
     <div className="flex h-full min-w-0 flex-col">
-      <header className="flex items-center gap-3 border-b border-border-subtle p-3">
+      <header className="flex items-center gap-2 border-b border-border-subtle p-2 sm:gap-3 sm:p-3">
         <Avatar
           avatarUrl={display.avatarUrl}
           userId={display.peerId ?? dialogId}
@@ -155,14 +155,19 @@ export function ChatPane() {
           <PresenceLine peerId={display.peerId} />
         </div>
         {isGroup ? (
-          <Link to={`/d/${dialogId}/info`} className="text-sm text-accent hover:underline">
-            {dialog.data?.participantIds.length} members
+          <Link
+            to={`/d/${dialogId}/info`}
+            className="shrink-0 whitespace-nowrap text-sm text-accent hover:underline"
+          >
+            {dialog.data?.participantIds.length}
+            <span className="hidden sm:inline"> members</span>
           </Link>
         ) : null}
 
         <Button
           variant="ghost"
           size="sm"
+          className="shrink-0 px-2 sm:px-3"
           aria-label="Start a voice call"
           disabled={!canCall}
           onClick={() => void startCall('audio')}
@@ -172,6 +177,7 @@ export function ChatPane() {
         <Button
           variant="ghost"
           size="sm"
+          className="shrink-0 px-2 sm:px-3"
           aria-label="Start a video call"
           disabled={!canCall}
           onClick={() => void startCall('video')}

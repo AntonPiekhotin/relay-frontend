@@ -25,7 +25,8 @@ export function CallOverlay() {
     return error ? (
       <div
         role="alert"
-        className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-raised px-4 py-2 text-sm"
+        className="fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border border-border-subtle
+          bg-surface-raised px-4 py-2 text-sm sm:left-auto"
       >
         {error}
         <Button variant="ghost" size="sm" onClick={() => setError(null)}>
@@ -50,7 +51,7 @@ export function CallOverlay() {
         <DirectStage peerId={call.kind === 'connected' ? call.peerId : call.kind === 'outgoing' ? call.peerId : ''} />
       )}
 
-      <div className="flex items-center justify-center gap-3 p-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 p-4">
         <Button
           variant="secondary"
           onClick={() => void (isGroup ? setGroupMicEnabled(!micEnabled) : setMicEnabled(!micEnabled))}
@@ -118,7 +119,7 @@ function DirectStage({ peerId }: { peerId: string }) {
         playsInline
         muted
         aria-label="Your camera"
-        className="absolute bottom-4 right-4 w-40 rounded-lg border border-border-subtle object-cover"
+        className="absolute bottom-4 right-4 w-28 rounded-lg border border-border-subtle object-cover sm:w-40"
       />
       <span className="sr-only">{peerId}</span>
     </div>

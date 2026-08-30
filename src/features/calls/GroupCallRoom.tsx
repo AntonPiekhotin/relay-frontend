@@ -13,9 +13,9 @@ export function GroupCallRoom() {
   const identities = room ? [...room.remoteParticipants.keys()] : []
 
   return (
-    <div className="grid flex-1 grid-cols-2 gap-2 p-2">
+    <div className="grid flex-1 grid-cols-1 gap-2 p-2 sm:grid-cols-2">
       {identities.length === 0 ? (
-        <p className="col-span-2 flex items-center justify-center text-sm text-zinc-500">
+        <p className="flex items-center justify-center text-sm text-zinc-500 sm:col-span-2">
           Waiting for others to join…
         </p>
       ) : (
