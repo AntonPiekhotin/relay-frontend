@@ -11,6 +11,7 @@ import { leaveCurrentGroupCall, setGroupCameraEnabled, setGroupMicEnabled } from
 import { displayName, useUser } from '@/queries/useUser'
 import { useCountdown } from '@/hooks/useCountdown'
 import { Button } from '@/components/Button'
+import { Icon } from '@/components/Icon'
 import { GroupCallRoom } from './GroupCallRoom'
 
 /** The full-screen call surface: outgoing, connected, and group. Ringing lives in the toast. */
@@ -52,27 +53,37 @@ export function CallOverlay() {
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-3 p-4">
+        {/* The icon shows the current state (a slash means off); the label names the action the
+            click performs. That is the convention every call UI uses, and the two must not be
+            swapped — an icon-only control has no other cue for either. */}
         <Button
           variant="secondary"
+          size="icon"
           onClick={() => void (isGroup ? setGroupMicEnabled(!micEnabled) : setMicEnabled(!micEnabled))}
           aria-label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
+          title={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
         >
-          {micEnabled ? 'Mute' : 'Unmute'}
+          <Icon name={micEnabled ? 'mic' : 'mic-off'} />
         </Button>
         {media === 'video' ? (
           <Button
             variant="secondary"
+            size="icon"
             onClick={() => void (isGroup ? setGroupCameraEnabled(!cameraEnabled) : setCameraEnabled(!cameraEnabled))}
             aria-label={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
+            title={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
           >
-            {cameraEnabled ? 'Camera off' : 'Camera on'}
+            <Icon name={cameraEnabled ? 'video' : 'video-off'} />
           </Button>
         ) : null}
         <Button
           variant="danger"
+          size="icon"
           onClick={() => (isGroup ? void leaveCurrentGroupCall() : hangUpDirectCall('hangup'))}
+          aria-label={isGroup ? 'Leave the call' : 'Hang up'}
+          title={isGroup ? 'Leave the call' : 'Hang up'}
         >
-          {isGroup ? 'Leave' : 'Hang up'}
+          <Icon name="phone-off" />
         </Button>
       </div>
     </div>

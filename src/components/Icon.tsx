@@ -1,4 +1,4 @@
-export type IconName = 'send' | 'phone' | 'video'
+export type IconName = 'send' | 'phone' | 'phone-off' | 'mic' | 'mic-off' | 'video' | 'video-off'
 
 export interface IconProps {
   name: IconName
@@ -18,7 +18,11 @@ export interface IconProps {
 const MASKS: Record<IconName, string> = {
   send: '[mask-image:url(/icons/send.svg)]',
   phone: '[mask-image:url(/icons/phone.svg)]',
+  'phone-off': '[mask-image:url(/icons/phone-off.svg)]',
+  mic: '[mask-image:url(/icons/mic.svg)]',
+  'mic-off': '[mask-image:url(/icons/mic-off.svg)]',
   video: '[mask-image:url(/icons/video.svg)]',
+  'video-off': '[mask-image:url(/icons/video-off.svg)]',
 }
 
 const MASK_BASE =
