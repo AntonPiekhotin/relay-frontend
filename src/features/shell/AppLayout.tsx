@@ -5,9 +5,6 @@ import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { DialogList } from '@/features/dialogs/DialogList'
 import { displayName, initialsOf, useMe } from '@/queries/useUser'
-import { signOut } from '@/stores/authStore'
-import { useOutboxStore } from '@/stores/outboxStore'
-import { clearAvatarCache } from '@/lib/avatar'
 import { startRealtime, stopRealtime } from '@/lib/realtime/connection'
 import { ConnectionBanner } from './ConnectionBanner'
 import { CallOverlay } from '@/features/calls/CallOverlay'
@@ -100,22 +97,6 @@ export function AppLayout() {
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{displayName(me.data)}</span>
             </Link>
             <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="shrink-0"
-              onClick={() => {
-                // Everything cached belongs to the account that is leaving: the object URLs point at
-                // its avatar bytes, and its queued messages must not be flushed by whoever signs in
-                // next — the same clientMsgId would be sent from a different account.
-                clearAvatarCache()
-                useOutboxStore.getState().clear()
-                queryClient.clear()
-                signOut()
-              }}
-            >
-              Sign out
-            </Button>
           </header>
 
           <DialogList />

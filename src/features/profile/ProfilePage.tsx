@@ -7,8 +7,12 @@ import { initialsOf, useMe } from '@/queries/useUser'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
+import { Modal } from '@/components/Modal'
 import { Spinner } from '@/components/Spinner'
 import { ThemePicker } from '@/components/ThemePicker'
+import { clearAvatarCache } from '@/lib/avatar'
+import { signOut } from '@/stores/authStore'
+import { useOutboxStore } from '@/stores/outboxStore'
 
 /** The server rejects anything larger with a 413; check here so the byte upload never happens. */
 const MAX_AVATAR_BYTES = 1024 * 1024
@@ -20,6 +24,7 @@ export function ProfilePage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [fileError, setFileError] = useState<string | null>(null)
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false)
   const edited = useRef(false)
   const filePicker = useRef<HTMLInputElement | null>(null)
 
@@ -51,6 +56,18 @@ export function ProfilePage() {
     mutationFn: () => deleteAvatar(),
     onSuccess: () => void qc.invalidateQueries({ queryKey: qk.me }),
   })
+
+  /**
+   * Everything cached belongs to the account that is leaving: the object URLs point at its avatar
+   * bytes, and its queued messages must not be flushed by whoever signs in next — the same
+   * clientMsgId would be sent from a different account.
+   */
+  function performSignOut() {
+    clearAvatarCache()
+    useOutboxStore.getState().clear()
+    qc.clear()
+    signOut()
+  }
 
   if (me.isPending) {
     return (
@@ -148,6 +165,34 @@ export function ProfilePage() {
         <h2 className="text-sm font-semibold">Appearance</h2>
         <ThemePicker />
       </section>
+
+      <section className="space-y-2 border-t border-border-subtle pt-6">
+        <h2 className="text-sm font-semibold">Account</h2>
+        <p className="text-xs text-fg-subtle">
+          Signing out clears this device's cached conversations and any messages still waiting to send.
+        </p>
+        <Button variant="danger" size="sm" onClick={() => setConfirmingSignOut(true)}>
+          Sign out
+        </Button>
+      </section>
+
+      <Modal
+        open={confirmingSignOut}
+        title="Sign out?"
+        onClose={() => setConfirmingSignOut(false)}
+        footer={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setConfirmingSignOut(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" size="sm" onClick={performSignOut}>
+              Sign out
+            </Button>
+          </>
+        }
+      >
+        You will need to sign in again on this device. Messages still queued to send will be discarded.
+      </Modal>
     </div>
   )
 }
