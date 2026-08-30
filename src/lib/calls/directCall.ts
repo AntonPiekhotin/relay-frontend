@@ -23,6 +23,7 @@ import type {
   CallSignalPayload,
 } from '@/lib/protocol/types'
 import { acquireLocalMedia, mediaErrorMessage, stopStream } from './media'
+import { playConnected, playEnded, startRingback, stopRingback } from './tones'
 
 /**
  * `CallSignal` ends in an open `{ verb: string; [key: string]: unknown }` member so an unknown verb
@@ -92,11 +93,23 @@ export async function startDirectCall(peerId: string, media: CallMedia, dialogId
       return
     }
 
-    // `ring_expires_at` arrives on the `state` verb; until then there is no honest deadline to show.
-    store.setCall({ kind: 'outgoing', callId, peerId, media, ringExpiresAt: null })
+    // The caller is never told a deadline: `ring_expires_at` rides the *invite*, which only the
+    // callee receives, and the `state` verb carries nothing but a `status` string. So the caller's
+    // UI counts up from here rather than down from a number we do not have, and says "Ringing" only
+    // once `state` says so — until then the honest word is "Connecting".
+    store.setCall({
+      kind: 'outgoing',
+      callId,
+      peerId,
+      media,
+      ringExpiresAt: null,
+      status: 'connecting',
+      placedAt: Date.now(),
+    })
     store.setMic(true)
     store.setCamera(media === 'video')
     store.bumpMedia()
+    startRingback()
   } catch {
     endCall('Could not start the call.')
   } finally {
@@ -183,6 +196,9 @@ export function hangUpDirectCall(reason?: string): void {
     call.callId,
   )
   teardown()
+  // No notice — the user pressed the button and knows why the screen went away. The tone is just
+  // the confirmation that the press landed.
+  playEnded()
 }
 
 export function setMicEnabled(enabled: boolean): void {
@@ -228,7 +244,12 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
     }
 
     case 'state': {
-      // Currently only "your invite reached ringing". Nothing to change but the label.
+      // Currently only "your invite reached ringing" — but that is the one moment where the caller
+      // learns the callee's device is actually alerting, so it is worth the label. An unrecognised
+      // status is ignored rather than shown: the server may add more of them.
+      if (call.kind !== 'outgoing' || call.callId !== payload.call_id) return
+      if ((signal as SignalOf<'state'>).status !== 'ringing') return
+      store.setCall({ ...call, status: 'ringing' })
       return
     }
 
@@ -236,6 +257,8 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
       if (call.kind !== 'outgoing' || call.callId !== payload.call_id || !pc) return
       await pc.setRemoteDescription({ type: 'answer', sdp: (signal as SignalOf<'accept'>).sdp })
       await drainBufferedCandidates()
+      stopRingback()
+      playConnected()
       store.setCall({
         kind: 'connected',
         callId: call.callId,
@@ -259,16 +282,23 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
       return
     }
 
+    /**
+     * The three ways a call ends for reasons the user did not choose. Each says which one it was:
+     * an overlay that simply vanishes leaves the caller unable to tell a decline from a timeout
+     * from a bug in us.
+     */
     case 'reject':
-      if (activeDirectCallId() === payload.call_id) endCall(null)
+      if (activeDirectCallId() === payload.call_id) endCall('Call declined.')
       return
 
     case 'hangup':
-      if (activeDirectCallId() === payload.call_id) endCall(null)
+      if (activeDirectCallId() === payload.call_id) {
+        endCall(call.kind === 'connected' ? 'Call ended.' : 'They hung up.')
+      }
       return
 
     case 'missed':
-      if (activeDirectCallId() === payload.call_id) endCall(null)
+      if (activeDirectCallId() === payload.call_id) endCall('No answer.')
       return
 
     /**
@@ -348,14 +378,24 @@ async function drainBufferedCandidates(): Promise<void> {
   for (const candidate of candidates) await pc.addIceCandidate(candidate).catch(() => undefined)
 }
 
+/**
+ * A message means the call ended for a reason the user did not choose — a decline, a timeout, a
+ * failure — so it gets both the notice and the audible cue. `null` is the silent path: `cancel`,
+ * where another of this user's own devices settled the call and a chirp here would be noise.
+ */
 function endCall(message: string | null): void {
   teardown()
-  if (message) useCallStore.getState().setError(message)
+  if (message) {
+    useCallStore.getState().setError(message)
+    playEnded()
+  }
 }
 
 /** Stop every track, close the connection, null it out. A stale `pc` throws on a late candidate. */
 export function teardown(): void {
   settingUp = false
+  // Unconditional: a ringback that outlives the call it belongs to is the worst possible bug here.
+  stopRingback()
   stopStream(localStream)
   stopStream(remoteStream)
   localStream = null

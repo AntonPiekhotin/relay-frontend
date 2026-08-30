@@ -13,9 +13,25 @@
 import { create } from 'zustand'
 import type { CallMedia, GroupCallParticipantWire, Iso } from '@/lib/protocol/types'
 
+/**
+ * How far an outgoing invite has got. `connecting` covers everything up to the server confirming
+ * the callee's device is being rung; `ringing` is the server's own `state` verb, and it is the only
+ * point at which we may honestly claim the other phone is making a noise.
+ */
+export type OutgoingStatus = 'connecting' | 'ringing'
+
 export type CallState =
   | { kind: 'idle' }
-  | { kind: 'outgoing'; callId: string; peerId: string; media: CallMedia; ringExpiresAt: Iso | null }
+  | {
+      kind: 'outgoing'
+      callId: string
+      peerId: string
+      media: CallMedia
+      ringExpiresAt: Iso | null
+      status: OutgoingStatus
+      /** Local epoch millis, for the elapsed counter. The server sends the caller no deadline. */
+      placedAt: number
+    }
   | { kind: 'incoming'; callId: string; from: string; media: CallMedia; sdp: string; ringExpiresAt: Iso }
   | { kind: 'connected'; callId: string; peerId: string; media: CallMedia; startedAt: number }
   | {
