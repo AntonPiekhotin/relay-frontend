@@ -51,7 +51,7 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
               <button
                 type="button"
                 onClick={() => toggle(user)}
-                className="flex items-center gap-2 rounded-full bg-surface-raised py-1 pl-1 pr-3 text-sm hover:brightness-125"
+                className="flex items-center gap-2 rounded-full bg-surface-raised py-1 pl-1 pr-3 text-sm hover:bg-surface-hover"
                 aria-label={`Remove ${displayName(user)}`}
               >
                 <Avatar avatarUrl={user.avatarUrl} userId={user.id} initials={initialsOf(user)} size="sm" />
@@ -71,11 +71,11 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
       />
 
       {!enabled ? (
-        <p className="text-xs text-zinc-500">Type at least two characters.</p>
+        <p className="text-xs text-fg-subtle">Type at least two characters.</p>
       ) : results.isPending ? (
         <Spinner />
       ) : results.isError ? (
-        <p className="text-xs text-red-400">Search failed. Try again.</p>
+        <p className="text-xs text-danger">Search failed. Try again.</p>
       ) : (
         <ul className="max-h-64 space-y-1 overflow-y-auto">
           {results.data.items.map(({ user }) => {
@@ -85,7 +85,7 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
                 <Avatar avatarUrl={user.avatarUrl} userId={user.id} initials={initialsOf(user)} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{displayName(user)}</p>
-                  <p className="truncate text-xs text-zinc-500">{user.email}</p>
+                  <p className="truncate text-xs text-fg-subtle">{user.email}</p>
                 </div>
                 <Button
                   variant="secondary"

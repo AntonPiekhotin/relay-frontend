@@ -100,12 +100,12 @@ export function GroupInfoPage() {
           <Button size="sm" disabled={!title.trim() || rename.isPending} onClick={() => rename.mutate()}>
             Rename
           </Button>
-          {rename.isError ? <p className="text-sm text-red-400">{friendlyError(rename.error)}</p> : null}
+          {rename.isError ? <p className="text-sm text-danger">{friendlyError(rename.error)}</p> : null}
         </section>
       ) : null}
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
           Members ({dialog.data.participantIds.length} of {MAX_MEMBERS_INCLUDING_ME})
         </h2>
         <ul className="space-y-1">
@@ -119,12 +119,12 @@ export function GroupInfoPage() {
             />
           ))}
         </ul>
-        {remove.isError ? <p className="text-sm text-red-400">{friendlyError(remove.error)}</p> : null}
+        {remove.isError ? <p className="text-sm text-danger">{friendlyError(remove.error)}</p> : null}
       </section>
 
       {isOwner ? (
         <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Add members</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">Add members</h2>
           <MemberPicker
             selected={adding}
             onChange={setAdding}
@@ -135,7 +135,7 @@ export function GroupInfoPage() {
             Add {adding.length > 0 ? adding.length : ''}
           </Button>
           {/* Adding somebody who is already in is a silent no-op server-side, not an error. */}
-          {add.isError ? <p className="text-sm text-red-400">{friendlyError(add.error)}</p> : null}
+          {add.isError ? <p className="text-sm text-danger">{friendlyError(add.error)}</p> : null}
         </section>
       ) : null}
 
@@ -189,7 +189,7 @@ function MemberRow({ userId, isOwner, canRemove, onRemove }: MemberRowProps) {
       <Avatar avatarUrl={user.data?.avatarUrl} userId={userId} initials={initialsOf(user.data)} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">{user.data ? displayName(user.data) : 'Loading…'}</p>
-        {isOwner ? <p className="text-xs text-zinc-500">Owner</p> : null}
+        {isOwner ? <p className="text-xs text-fg-subtle">Owner</p> : null}
       </div>
       {canRemove ? (
         <Button variant="ghost" size="sm" onClick={onRemove}>

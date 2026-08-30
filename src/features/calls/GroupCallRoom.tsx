@@ -15,7 +15,7 @@ export function GroupCallRoom() {
   return (
     <div className="grid flex-1 grid-cols-1 gap-2 p-2 sm:grid-cols-2">
       {identities.length === 0 ? (
-        <p className="flex items-center justify-center text-sm text-zinc-500 sm:col-span-2">
+        <p className="flex items-center justify-center text-sm text-fg-subtle sm:col-span-2">
           Waiting for others to join…
         </p>
       ) : (

@@ -22,7 +22,7 @@ export function ConnectionBanner() {
     <div
       role="status"
       className={`px-4 py-1.5 text-center text-xs ${
-        status === 'unauthorized' ? 'bg-red-900/60 text-red-100' : 'bg-surface-raised text-zinc-300'
+        status === 'unauthorized' ? 'bg-danger-surface text-danger-surface-fg' : 'bg-surface-raised text-fg-muted'
       }`}
     >
       {text}

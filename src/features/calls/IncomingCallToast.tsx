@@ -34,7 +34,7 @@ export function IncomingCallToast() {
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{caller.data ? displayName(caller.data) : 'Incoming call'}</p>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-fg-muted">
             {isGroup ? 'Group call' : call.media === 'video' ? 'Video call' : 'Voice call'}
             {secondsLeft !== null ? ` · ${secondsLeft}s` : ''}
           </p>

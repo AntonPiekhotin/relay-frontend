@@ -12,6 +12,7 @@ import { startRealtime, stopRealtime } from '@/lib/realtime/connection'
 import { ConnectionBanner } from './ConnectionBanner'
 import { CallOverlay } from '@/features/calls/CallOverlay'
 import { IncomingCallToast } from '@/features/calls/IncomingCallToast'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Chats', end: true },
@@ -92,6 +93,7 @@ export function AppLayout() {
               <Avatar avatarUrl={me.data?.avatarUrl} userId={me.data?.id} initials={initialsOf(me.data)} size="sm" />
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{displayName(me.data)}</span>
             </Link>
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
@@ -118,7 +120,7 @@ export function AppLayout() {
                 end={item.end}
                 className={({ isActive }) =>
                   `rounded-lg px-3 py-1.5 text-center text-sm ${
-                    isActive ? 'bg-surface-raised text-zinc-100' : 'text-zinc-400 hover:bg-surface-raised'
+                    isActive ? 'bg-surface-raised text-fg' : 'text-fg-muted hover:bg-surface-raised'
                   }`
                 }
               >

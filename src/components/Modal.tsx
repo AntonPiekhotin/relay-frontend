@@ -65,7 +65,7 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         className="w-full max-w-md space-y-4 rounded-xl border border-border-subtle bg-surface p-5 outline-none"
       >
         <h2 className="text-base font-semibold">{title}</h2>
-        <div className="text-sm text-zinc-300">{children}</div>
+        <div className="text-sm text-fg-muted">{children}</div>
         {footer ? <div className="flex justify-end gap-2">{footer}</div> : null}
       </div>
     </div>

@@ -214,7 +214,7 @@ export function ChatPane() {
       )}
 
       {queueFull ? (
-        <p role="alert" className="px-4 pb-1 text-xs text-red-400">
+        <p role="alert" className="px-4 pb-1 text-xs text-danger">
           Too many messages are waiting to send here. Wait for the connection to come back.
         </p>
       ) : null}

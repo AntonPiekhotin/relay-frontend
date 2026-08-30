@@ -7,6 +7,8 @@ export type IconName =
   | 'video'
   | 'video-off'
   | 'close'
+  | 'sun'
+  | 'moon'
 
 export interface IconProps {
   name: IconName
@@ -32,6 +34,8 @@ const MASKS: Record<IconName, string> = {
   video: '[mask-image:url(/icons/video.svg)]',
   'video-off': '[mask-image:url(/icons/video-off.svg)]',
   close: '[mask-image:url(/icons/close.svg)]',
+  sun: '[mask-image:url(/icons/sun.svg)]',
+  moon: '[mask-image:url(/icons/moon.svg)]',
 }
 
 const MASK_BASE =

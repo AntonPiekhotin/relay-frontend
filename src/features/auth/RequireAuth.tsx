@@ -43,7 +43,7 @@ function ResolveIdentity() {
 
   if (me.isError && !userId) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-zinc-400">
+      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-fg-muted">
         Could not reach the server. Check that the backend is running — docs/BACKEND-SETUP.md.
       </div>
     )

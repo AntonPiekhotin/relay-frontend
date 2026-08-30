@@ -64,13 +64,13 @@ function CallRow({ call }: { call: CallLogEntry }) {
     <li className="flex items-center gap-3 rounded-lg p-2 hover:bg-surface-raised">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">{who}</p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-fg-subtle">
           {call.direction === 'incoming' ? 'Incoming' : 'Outgoing'} · {call.media} · {call.status}
           {/* Talk time, not ring time — absent for a call that was never answered. */}
           {call.durationSeconds !== null ? ` · ${formatDuration(call.durationSeconds)}` : ''}
         </p>
       </div>
-      <span className="shrink-0 text-xs text-zinc-500">{formatDialogTime(call.startedAt)}</span>
+      <span className="shrink-0 text-xs text-fg-subtle">{formatDialogTime(call.startedAt)}</span>
     </li>
   )
 }

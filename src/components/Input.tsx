@@ -11,7 +11,7 @@ export function Input({ label, className = '', id, ...props }: InputProps) {
   return (
     <div className="space-y-1.5">
       {label ? (
-        <label htmlFor={inputId} className="block text-xs font-medium text-zinc-400">
+        <label htmlFor={inputId} className="block text-xs font-medium text-fg-muted">
           {label}
         </label>
       ) : null}
@@ -19,7 +19,7 @@ export function Input({ label, className = '', id, ...props }: InputProps) {
         {...props}
         id={inputId}
         className={`h-10 w-full rounded-lg border border-border-subtle bg-surface-raised px-3 text-base
-          text-zinc-100 placeholder:text-zinc-500 focus:border-accent focus:outline-none sm:text-sm ${className}`}
+          text-fg placeholder:text-fg-subtle focus:border-accent focus:outline-none sm:text-sm ${className}`}
       />
     </div>
   )

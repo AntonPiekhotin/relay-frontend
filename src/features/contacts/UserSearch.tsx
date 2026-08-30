@@ -39,7 +39,7 @@ export function UserSearch() {
 
       {/* Names match by prefix, email only exactly — a prefix match on email would harvest addresses. */}
       {!enabled ? (
-        <p className="text-xs text-zinc-500">Type at least two characters.</p>
+        <p className="text-xs text-fg-subtle">Type at least two characters.</p>
       ) : results.isPending ? (
         <div className="flex justify-center p-4">
           <Spinner />
@@ -85,7 +85,7 @@ function PersonRow({ hit }: { hit: SearchHit }) {
       <Avatar avatarUrl={hit.user.avatarUrl} userId={hit.user.id} initials={initialsOf(hit.user)} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{displayName(hit.user)}</p>
-        <p className="truncate text-xs text-zinc-500">{hit.user.email}</p>
+        <p className="truncate text-xs text-fg-subtle">{hit.user.email}</p>
       </div>
       <Button variant="secondary" size="sm" onClick={() => contact.mutate()} disabled={contact.isPending}>
         {hit.contact ? 'Remove' : 'Add'}

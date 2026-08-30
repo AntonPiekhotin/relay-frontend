@@ -25,7 +25,7 @@ export function TypingRow({ dialogId }: TypingRowProps) {
   const typists = typistsIn(byDialog, dialogId)
 
   return (
-    <p className="h-5 px-4 text-xs text-zinc-500" aria-live="polite">
+    <p className="h-5 px-4 text-xs text-fg-subtle" aria-live="polite">
       {typists.length === 1 && typists[0] ? (
         <SingleTypist userId={typists[0]} />
       ) : typists.length > 1 ? (

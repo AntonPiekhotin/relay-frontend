@@ -26,7 +26,7 @@ export function SystemMessageRow({ message, dialogTitle }: SystemMessageRowProps
 
   return (
     <li className="flex justify-center">
-      <p className="rounded-full bg-surface-raised px-3 py-1 text-center text-xs text-zinc-400">
+      <p className="rounded-full bg-surface-raised px-3 py-1 text-center text-xs text-fg-muted">
         {sentenceFor(message.kind, actorName, targetName, title)}
       </p>
     </li>

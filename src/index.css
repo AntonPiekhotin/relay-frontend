@@ -1,10 +1,86 @@
 @import "tailwindcss";
 
-@theme {
-  --color-surface: oklch(0.16 0.005 285);
-  --color-surface-raised: oklch(0.21 0.006 285);
-  --color-border-subtle: oklch(0.29 0.007 285);
-  --color-accent: oklch(0.65 0.17 255);
+/*
+ * Tailwind v4's `dark:` variant follows `prefers-color-scheme` by default, which cannot be
+ * overridden by a user choice. Point it at the `.dark` class on <html> instead, so the same
+ * selector drives both the tokens below and any `dark:` utility.
+ *
+ * Note that almost nothing in this app needs `dark:` — the palette is swapped through the tokens,
+ * so a component names `text-fg`, not `text-zinc-100 dark:text-zinc-900` (docs/UI.md §8).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * `inline` matters: it makes the utilities compile to `var(--relay-surface)` rather than baking the
+ * value in, which is what lets `.dark` below re-point a token and repaint the app with no rebuild
+ * and no second set of classes.
+ *
+ * The price: Tailwind no longer knows a token's value at build time, so an opacity modifier on one
+ * is SILENTLY DROPPED — `bg-accent/50` compiles to a fully opaque `bg-accent`, with no warning.
+ * Add a token for the tint you want (that is what `surface-subtle` is) rather than reaching for a
+ * slash. `/` still works on literal colours like `bg-black/60`, which is why the scrims use one.
+ */
+@theme inline {
+  --color-surface: var(--relay-surface);
+  --color-surface-subtle: var(--relay-surface-subtle);
+  --color-surface-raised: var(--relay-surface-raised);
+  --color-surface-hover: var(--relay-surface-hover);
+  --color-border-subtle: var(--relay-border-subtle);
+  --color-accent: var(--relay-accent);
+
+  --color-fg: var(--relay-fg);
+  --color-fg-muted: var(--relay-fg-muted);
+  --color-fg-subtle: var(--relay-fg-subtle);
+
+  --color-danger: var(--relay-danger);
+  --color-danger-solid: var(--relay-danger-solid);
+  --color-danger-surface: var(--relay-danger-surface);
+  --color-danger-surface-fg: var(--relay-danger-surface-fg);
+  --color-success: var(--relay-success);
+}
+
+/* Light is the base; `.dark` is the override. The class is written by `initTheme()`, and by the
+   inline script in index.html that runs before first paint so the wrong theme never flashes. */
+:root {
+  color-scheme: light;
+
+  --relay-surface: oklch(0.99 0.002 285);
+  --relay-surface-subtle: oklch(0.972 0.003 285);
+  --relay-surface-raised: oklch(0.955 0.004 285);
+  --relay-surface-hover: oklch(0.915 0.005 285);
+  --relay-border-subtle: oklch(0.9 0.006 285);
+  --relay-accent: oklch(0.55 0.19 255);
+
+  --relay-fg: oklch(0.25 0.008 285);
+  --relay-fg-muted: oklch(0.5 0.012 285);
+  --relay-fg-subtle: oklch(0.6 0.012 285);
+
+  --relay-danger: oklch(0.55 0.21 27);
+  --relay-danger-solid: oklch(0.58 0.22 27);
+  --relay-danger-surface: oklch(0.94 0.04 27);
+  --relay-danger-surface-fg: oklch(0.42 0.16 27);
+  --relay-success: oklch(0.55 0.15 155);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --relay-surface: oklch(0.16 0.005 285);
+  --relay-surface-subtle: oklch(0.185 0.005 285);
+  --relay-surface-raised: oklch(0.21 0.006 285);
+  --relay-surface-hover: oklch(0.26 0.007 285);
+  --relay-border-subtle: oklch(0.29 0.007 285);
+  --relay-accent: oklch(0.65 0.17 255);
+
+  --relay-fg: oklch(0.96 0.002 285);
+  --relay-fg-muted: oklch(0.71 0.014 286);
+  --relay-fg-subtle: oklch(0.55 0.016 286);
+
+  --relay-danger: oklch(0.71 0.19 22);
+  --relay-danger-solid: oklch(0.58 0.22 27);
+  --relay-danger-surface: oklch(0.32 0.09 25);
+  --relay-danger-surface-fg: oklch(0.89 0.06 18);
+  --relay-success: oklch(0.77 0.16 163);
 }
 
 html, body, #root { height: 100%; }
@@ -16,7 +92,7 @@ html, body, #root { height: 100%; }
 }
 
 body {
-  @apply bg-surface text-zinc-100 antialiased;
+  @apply bg-surface text-fg antialiased;
   /* A chat has no horizontal axis. Anything wider than the viewport is a bug, and scrolling to it
      only hides the bug — clamp it here so it shows up as clipping instead. */
   overflow-x: hidden;

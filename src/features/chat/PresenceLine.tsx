@@ -15,8 +15,8 @@ export function PresenceLine({ peerId }: PresenceLineProps) {
   const presence = usePresenceStore((s) => (peerId ? s.byUser[peerId] : undefined))
 
   if (!peerId || !presence) return null
-  if (presence.online) return <span className="text-xs text-emerald-400">Online</span>
+  if (presence.online) return <span className="text-xs text-success">Online</span>
 
   const lastSeen = formatLastSeen(presence.lastSeen)
-  return <span className="text-xs text-zinc-500">{lastSeen ? `Offline · ${lastSeen}` : 'Offline'}</span>
+  return <span className="text-xs text-fg-subtle">{lastSeen ? `Offline · ${lastSeen}` : 'Offline'}</span>
 }

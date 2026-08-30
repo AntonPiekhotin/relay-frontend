@@ -50,12 +50,12 @@ export function GroupCreatePage() {
 
       <MemberPicker selected={members} onChange={setMembers} remainingSlots={remainingSlots} />
 
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-fg-subtle">
         {members.length + 1} of {MAX_MEMBERS_INCLUDING_ME} members. You are the owner and cannot leave —
         you can delete the group instead.
       </p>
 
-      {create.isError ? <p className="text-sm text-red-400">{friendlyError(create.error)}</p> : null}
+      {create.isError ? <p className="text-sm text-danger">{friendlyError(create.error)}</p> : null}
 
       <div className="flex gap-2">
         <Button disabled={!canCreate || create.isPending} onClick={() => create.mutate()}>

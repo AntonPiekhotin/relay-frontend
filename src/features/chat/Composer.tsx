@@ -59,7 +59,7 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
         aria-label="Message"
         placeholder="Write a message…"
         className="max-h-40 min-h-10 w-full min-w-0 flex-1 resize-none rounded-lg border border-border-subtle
-          bg-surface-raised px-3 py-2 text-base text-zinc-100 placeholder:text-zinc-500 focus:border-accent
+          bg-surface-raised px-3 py-2 text-base text-fg placeholder:text-fg-subtle focus:border-accent
           focus:outline-none sm:text-sm"
         onChange={(e) => {
           setText(e.target.value)

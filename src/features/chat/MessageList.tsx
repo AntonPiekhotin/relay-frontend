@@ -141,7 +141,7 @@ export function MessageList({
           return (
             <li key={key} className="list-none">
               {newDay ? (
-                <p className="my-3 text-center text-xs font-medium text-zinc-500">
+                <p className="my-3 text-center text-xs font-medium text-fg-subtle">
                   {formatDaySeparator(message.createdAt)}
                 </p>
               ) : null}

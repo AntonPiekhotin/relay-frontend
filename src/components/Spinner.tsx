@@ -8,7 +8,7 @@ export function Spinner({ className = 'size-4', label = 'Loading' }: SpinnerProp
     <span
       role="status"
       aria-label={label}
-      className={`inline-block animate-spin rounded-full border-2 border-zinc-600 border-t-accent ${className}`}
+      className={`inline-block animate-spin rounded-full border-2 border-border-subtle border-t-accent ${className}`}
     />
   )
 }

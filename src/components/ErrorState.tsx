@@ -13,8 +13,8 @@ export function ErrorState({ error, what = 'Could not load this.', onRetry }: Er
   return (
     <div role="alert" className="flex flex-col items-center justify-center gap-3 p-8 text-center">
       <div className="space-y-1">
-        <p className="text-sm font-medium text-zinc-300">{what}</p>
-        <p className="text-sm text-zinc-500">{friendlyError(error)}</p>
+        <p className="text-sm font-medium text-fg-muted">{what}</p>
+        <p className="text-sm text-fg-subtle">{friendlyError(error)}</p>
       </div>
       {onRetry ? (
         <Button variant="secondary" size="sm" onClick={onRetry}>

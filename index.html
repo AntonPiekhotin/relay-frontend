@@ -1,9 +1,20 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>Relay</title>
+    <script>
+      // Runs before the first paint, so a dark-theme user never sees a white flash while the bundle
+      // loads. It reads the same `relay.theme` key as `stores/themeStore.ts` — a bare string, not a
+      // zustand `persist` envelope, precisely so this can stay four lines with no parsing.
+      try {
+        var pref = localStorage.getItem('relay.theme')
+        var dark = pref === 'dark' || (pref !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

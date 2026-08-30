@@ -17,7 +17,7 @@ export function DialogListItem({ dialog }: DialogListItemProps) {
         to={`/d/${dialog.dialogId}`}
         className={({ isActive }) =>
           `flex items-center gap-3 rounded-lg p-2 ${
-            isActive ? 'bg-surface-raised' : 'hover:bg-surface-raised/60'
+            isActive ? 'bg-surface-raised' : 'hover:bg-surface-subtle'
           }`
         }
       >
@@ -30,10 +30,10 @@ export function DialogListItem({ dialog }: DialogListItemProps) {
           <span className="flex items-baseline gap-2">
             {/* truncate is load-bearing: a long name otherwise pushes the time off the row. */}
             <span className="min-w-0 flex-1 truncate text-sm font-medium">{display.name || '…'}</span>
-            <span className="shrink-0 text-xs text-zinc-500">{formatDialogTime(dialog.lastMessageAt)}</span>
+            <span className="shrink-0 text-xs text-fg-subtle">{formatDialogTime(dialog.lastMessageAt)}</span>
           </span>
           <span className="mt-0.5 flex items-center gap-2">
-            <span className="min-w-0 flex-1 truncate text-xs text-zinc-500">
+            <span className="min-w-0 flex-1 truncate text-xs text-fg-subtle">
               {dialog.type === 'group' ? `${dialog.participantIds.length} members` : ''}
             </span>
             {dialog.unreadCount > 0 ? (

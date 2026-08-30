@@ -48,14 +48,14 @@ export function ContactList() {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Contacts</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">Contacts</h2>
       <ul className="space-y-1">
         {contacts.data.items.map(({ user }) => (
           <li key={user.id} className="flex items-center gap-3 rounded-lg p-2 hover:bg-surface-raised">
             <Avatar avatarUrl={user.avatarUrl} userId={user.id} initials={initialsOf(user)} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{displayName(user)}</p>
-              <p className="truncate text-xs text-zinc-500">{user.email}</p>
+              <p className="truncate text-xs text-fg-subtle">{user.email}</p>
             </div>
             <Button variant="secondary" size="sm" onClick={() => remove.mutate(user.id)}>
               Remove
@@ -71,7 +71,7 @@ export function ContactList() {
         <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
           Previous
         </Button>
-        <span className="text-xs text-zinc-500">Page {page + 1}</span>
+        <span className="text-xs text-fg-subtle">Page {page + 1}</span>
         <Button variant="ghost" size="sm" disabled={!contacts.data.hasNext} onClick={() => setPage((p) => p + 1)}>
           Next
         </Button>

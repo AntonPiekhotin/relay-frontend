@@ -30,17 +30,17 @@ export function MessageRow({
     <li className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`max-w-[min(36rem,80%)] rounded-2xl px-3 py-2 text-sm ${
-          isMine ? 'bg-accent text-white' : 'bg-surface-raised text-zinc-100'
-        } ${message.state === 'FAILED' ? 'ring-1 ring-red-500' : ''}`}
+          isMine ? 'bg-accent text-white' : 'bg-surface-raised text-fg'
+        } ${message.state === 'FAILED' ? 'ring-1 ring-danger' : ''}`}
       >
         {showSender && senderName ? (
-          <p className="mb-0.5 text-xs font-semibold text-zinc-300">{senderName}</p>
+          <p className="mb-0.5 text-xs font-semibold text-fg-muted">{senderName}</p>
         ) : null}
 
         {/* Never rendered as HTML — React escapes, and nothing here reaches for innerHTML. */}
         <p className="whitespace-pre-wrap break-words">{message.text}</p>
 
-        <p className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isMine ? 'text-white/70' : 'text-zinc-500'}`}>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${isMine ? 'text-white/70' : 'text-fg-subtle'}`}>
           <span>{formatTime(message.createdAt)}</span>
           {isMine ? <StateMark state={message.state} isRead={isRead} /> : null}
         </p>

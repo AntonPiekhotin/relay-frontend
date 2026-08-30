@@ -113,7 +113,7 @@ function Header() {
           ? `Group call · ${call.roster.filter((p) => p.state === 'joined').length} joined`
           : ''
 
-  return <p className="p-4 text-center text-sm text-zinc-300">{label}</p>
+  return <p className="p-4 text-center text-sm text-fg-muted">{label}</p>
 }
 
 function DirectStage({ peerId }: { peerId: string }) {

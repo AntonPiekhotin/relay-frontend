@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 /** There is no "confirm password" field on the wire — it is a form concern we own. */
 export function RegisterPage() {
@@ -48,9 +49,13 @@ export function RegisterPage() {
           mutation.mutate()
         }}
       >
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Create your account</h1>
-          <p className="text-sm text-zinc-400">You will be signed in straight away.</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Create your account</h1>
+            <p className="text-sm text-fg-muted">You will be signed in straight away.</p>
+          </div>
+          {/* The theme is a device preference, so it has to be reachable before there is an account. */}
+          <ThemeToggle className="-mr-2" />
         </div>
 
         <div className="flex gap-3">
@@ -97,12 +102,12 @@ export function RegisterPage() {
         />
 
         {mismatch ? (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" className="text-sm text-danger">
             Those passwords do not match.
           </p>
         ) : null}
         {mutation.isError ? (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" className="text-sm text-danger">
             {friendlyAuthError(mutation.error)}
           </p>
         ) : null}
@@ -112,7 +117,7 @@ export function RegisterPage() {
           Create account
         </Button>
 
-        <p className="text-center text-sm text-zinc-400">
+        <p className="text-center text-sm text-fg-muted">
           Already have an account?{' '}
           <Link to="/login" className="text-accent hover:underline">
             Sign in

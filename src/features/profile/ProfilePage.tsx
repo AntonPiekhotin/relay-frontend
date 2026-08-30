@@ -8,6 +8,7 @@ import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
+import { ThemePicker } from '@/components/ThemePicker'
 
 /** The server rejects anything larger with a 413; check here so the byte upload never happens. */
 const MAX_AVATAR_BYTES = 1024 * 1024
@@ -77,9 +78,9 @@ export function ProfilePage() {
               </Button>
             ) : null}
           </div>
-          <p className="text-xs text-zinc-500">PNG, JPEG, WebP or GIF, up to 1 MB.</p>
-          {fileError ? <p className="text-xs text-red-400">{fileError}</p> : null}
-          {avatar.isError ? <p className="text-xs text-red-400">{friendlyError(avatar.error)}</p> : null}
+          <p className="text-xs text-fg-subtle">PNG, JPEG, WebP or GIF, up to 1 MB.</p>
+          {fileError ? <p className="text-xs text-danger">{fileError}</p> : null}
+          {avatar.isError ? <p className="text-xs text-danger">{friendlyError(avatar.error)}</p> : null}
           <input
             ref={filePicker}
             type="file"
@@ -134,14 +135,22 @@ export function ProfilePage() {
         </div>
         <Input label="Email" value={me.data?.email ?? ''} disabled readOnly />
 
-        {save.isError ? <p className="text-sm text-red-400">{friendlyError(save.error)}</p> : null}
-        {save.isSuccess ? <p className="text-sm text-zinc-400">Saved.</p> : null}
+        {save.isError ? <p className="text-sm text-danger">{friendlyError(save.error)}</p> : null}
+        {save.isSuccess ? <p className="text-sm text-fg-muted">Saved.</p> : null}
 
         <Button type="submit" disabled={save.isPending || !firstName.trim() || !lastName.trim()}>
           {save.isPending ? <Spinner /> : null}
           Save
         </Button>
       </form>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold">Appearance</h2>
+        <ThemePicker />
+        <p className="text-xs text-fg-subtle">
+          Stored on this device only — the server has no idea which theme you use.
+        </p>
+      </section>
     </div>
   )
 }

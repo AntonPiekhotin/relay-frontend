@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -34,9 +35,13 @@ export function LoginPage() {
           mutation.mutate()
         }}
       >
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Relay</h1>
-          <p className="text-sm text-zinc-400">Sign in to your account.</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Relay</h1>
+            <p className="text-sm text-fg-muted">Sign in to your account.</p>
+          </div>
+          {/* The theme is a device preference, so it has to be reachable before there is an account. */}
+          <ThemeToggle className="-mr-2" />
         </div>
 
         <Input
@@ -57,7 +62,7 @@ export function LoginPage() {
         />
 
         {mutation.isError ? (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" className="text-sm text-danger">
             {friendlyAuthError(mutation.error)}
           </p>
         ) : null}
@@ -67,7 +72,7 @@ export function LoginPage() {
           Sign in
         </Button>
 
-        <p className="text-center text-sm text-zinc-400">
+        <p className="text-center text-sm text-fg-muted">
           No account?{' '}
           <Link to="/register" className="text-accent hover:underline">
             Create one
