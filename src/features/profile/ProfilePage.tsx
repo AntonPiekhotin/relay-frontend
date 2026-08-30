@@ -147,9 +147,6 @@ export function ProfilePage() {
       <section className="space-y-2">
         <h2 className="text-sm font-semibold">Appearance</h2>
         <ThemePicker />
-        <p className="text-xs text-fg-subtle">
-          Stored on this device only — the server has no idea which theme you use.
-        </p>
       </section>
     </div>
   )
