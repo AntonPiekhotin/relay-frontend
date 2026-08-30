@@ -5,6 +5,7 @@ import { displayName, initialsOf, useUser } from '@/queries/useUser'
 import { useCountdown } from '@/hooks/useCountdown'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
+import { Icon } from '@/components/Icon'
 
 /** Ringing UI for both mechanisms. A group invite carries no SDP — there is nothing to negotiate. */
 export function IncomingCallToast() {
@@ -45,16 +46,20 @@ export function IncomingCallToast() {
             inside this handler rather than a later effect. */}
         <Button
           className="flex-1"
+          aria-label="Answer"
+          title="Answer"
           onClick={() => void (isGroup ? joinIncomingGroupCall() : acceptIncomingCall())}
         >
-          Answer
+          <Icon name="phone" />
         </Button>
         <Button
           variant="danger"
           className="flex-1"
+          aria-label="Decline"
+          title="Decline"
           onClick={() => (isGroup ? void declineIncomingGroupCall() : rejectIncomingCall('declined'))}
         >
-          Decline
+          <Icon name="phone-off" />
         </Button>
       </div>
     </div>

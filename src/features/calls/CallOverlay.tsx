@@ -30,8 +30,15 @@ export function CallOverlay() {
           bg-surface-raised px-4 py-2 text-sm sm:left-auto"
       >
         {error}
-        <Button variant="ghost" size="sm" onClick={() => setError(null)}>
-          Dismiss
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="-mr-2 shrink-0"
+          aria-label="Dismiss"
+          title="Dismiss"
+          onClick={() => setError(null)}
+        >
+          <Icon name="close" className="size-4" />
         </Button>
       </div>
     ) : null
