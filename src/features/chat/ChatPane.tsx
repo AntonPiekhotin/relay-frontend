@@ -27,6 +27,7 @@ import { Composer } from './Composer'
 import { startDirectCall } from '@/lib/calls/directCall'
 import { startGroupCall } from '@/lib/calls/groupCall'
 import { Button } from '@/components/Button'
+import { Icon } from '@/components/Icon'
 import { PresenceLine } from './PresenceLine'
 import { TypingRow } from './TypingRow'
 
@@ -166,23 +167,25 @@ export function ChatPane() {
 
         <Button
           variant="ghost"
-          size="sm"
-          className="shrink-0 px-2 sm:px-3"
+          size="icon-sm"
+          className="shrink-0"
           aria-label="Start a voice call"
+          title="Start a voice call"
           disabled={!canCall}
           onClick={() => void startCall('audio')}
         >
-          Call
+          <Icon name="phone" className="size-4.5" />
         </Button>
         <Button
           variant="ghost"
-          size="sm"
-          className="shrink-0 px-2 sm:px-3"
+          size="icon-sm"
+          className="shrink-0"
           aria-label="Start a video call"
+          title="Start a video call"
           disabled={!canCall}
           onClick={() => void startCall('video')}
         >
-          Video
+          <Icon name="video" className="size-4.5" />
         </Button>
       </header>
 

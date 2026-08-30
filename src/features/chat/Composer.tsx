@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/Button'
+import { Icon } from '@/components/Icon'
 
 export interface ComposerProps {
   /** Focus follows the conversation: opening one puts the cursor in the box. */
@@ -73,8 +74,15 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
           }
         }}
       />
-      <Button type="submit" className="shrink-0" disabled={!text.trim() || disabled}>
-        Send
+      <Button
+        type="submit"
+        size="icon"
+        className="shrink-0"
+        aria-label="Send"
+        title="Send"
+        disabled={!text.trim() || disabled}
+      >
+        <Icon name="send" />
       </Button>
     </form>
   )
