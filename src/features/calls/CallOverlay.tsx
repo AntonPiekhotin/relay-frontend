@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { useCallStore } from '@/stores/callStore'
+import { useEffect, useRef, useState } from 'react'
+import { useCallStore, type CallState } from '@/stores/callStore'
 import {
   getLocalStream,
   getRemoteStream,
@@ -8,55 +8,45 @@ import {
   setMicEnabled,
 } from '@/lib/calls/directCall'
 import { leaveCurrentGroupCall, setGroupCameraEnabled, setGroupMicEnabled } from '@/lib/calls/groupCall'
-import { displayName, useUser } from '@/queries/useUser'
-import { useCountdown } from '@/hooks/useCountdown'
+import { displayName, initialsOf, useUser } from '@/queries/useUser'
+import { formatDuration, useElapsed } from '@/hooks/useElapsed'
+import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
 import { GroupCallRoom } from './GroupCallRoom'
 
-/** The full-screen call surface: outgoing, connected, and group. Ringing lives in the toast. */
+/** How long an ended-call notice stays up before it clears itself. */
+const NOTICE_MS = 6000
+
+type DirectCall = Extract<CallState, { kind: 'outgoing' | 'connected' }>
+
+/**
+ * The full-screen call surface: outgoing, connected, and group. Ringing lives in the toast.
+ *
+ * Everything on this surface sits on `bg-black/95` in both themes, so its text is `text-white`
+ * rather than a `fg` token — a token would resolve to near-black in the light theme and vanish
+ * (docs/UI.md §8 sanctions the literal here, as it does `bg-black` behind a video).
+ */
 export function CallOverlay() {
   const call = useCallStore((s) => s.call)
-  const error = useCallStore((s) => s.error)
   const micEnabled = useCallStore((s) => s.micEnabled)
   const cameraEnabled = useCallStore((s) => s.cameraEnabled)
-  const setError = useCallStore((s) => s.setError)
 
-  if (call.kind === 'idle') {
-    return error ? (
-      <div
-        role="alert"
-        className="fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border border-border-subtle
-          bg-surface-raised px-4 py-2 text-sm sm:left-auto"
-      >
-        {error}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="-mr-2 shrink-0"
-          aria-label="Dismiss"
-          title="Dismiss"
-          onClick={() => setError(null)}
-        >
-          <Icon name="close" className="size-4" />
-        </Button>
-      </div>
-    ) : null
-  }
-
+  if (call.kind === 'idle') return <CallNotice />
   if (call.kind === 'incoming' || call.kind === 'group-ringing') return null
 
   const isGroup = call.kind === 'group'
   const media = call.media
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-black/95">
-      <Header />
-
+    <div role="dialog" aria-label="Call" className="fixed inset-0 z-40 flex flex-col bg-black/95">
       {isGroup ? (
-        <GroupCallRoom />
+        <>
+          <GroupHeader roster={call.roster} />
+          <GroupCallRoom />
+        </>
       ) : (
-        <DirectStage peerId={call.kind === 'connected' ? call.peerId : call.kind === 'outgoing' ? call.peerId : ''} />
+        <DirectStage call={call} />
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-3 p-4">
@@ -97,49 +87,167 @@ export function CallOverlay() {
   )
 }
 
-function Header() {
-  const call = useCallStore((s) => s.call)
-  const peerId = call.kind === 'outgoing' || call.kind === 'connected' ? call.peerId : null
-  const peer = useUser(peerId)
-  // The server's deadline drives the countdown; we never decide the outcome ourselves.
-  const secondsLeft = useCountdown(call.kind === 'outgoing' ? call.ringExpiresAt : null)
+/**
+ * How a call ended, once it has. "No answer" and "Call declined" are different facts and the caller
+ * cannot tell them apart from an overlay that simply disappears — which is what used to happen.
+ * It clears itself, because a notice about a call that is over should not need dismissing.
+ */
+function CallNotice() {
+  const error = useCallStore((s) => s.error)
+  const setError = useCallStore((s) => s.setError)
 
-  const label =
-    call.kind === 'outgoing'
-      ? `Calling ${peer.data ? displayName(peer.data) : '…'}${secondsLeft !== null ? ` · ${secondsLeft}s` : ''}`
-      : call.kind === 'connected'
-        ? (peer.data ? displayName(peer.data) : 'In call')
-        : call.kind === 'group'
-          ? `Group call · ${call.roster.filter((p) => p.state === 'joined').length} joined`
-          : ''
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(null), NOTICE_MS)
+    return () => clearTimeout(timer)
+  }, [error, setError])
 
-  return <p className="p-4 text-center text-sm text-fg-muted">{label}</p>
+  if (!error) return null
+
+  return (
+    <div
+      role="alert"
+      className="fixed inset-x-4 bottom-4 z-50 flex items-center gap-3 rounded-lg border border-border-subtle
+        bg-surface-raised px-4 py-2 text-sm sm:left-auto"
+    >
+      {error}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="-mr-2 shrink-0"
+        aria-label="Dismiss"
+        title="Dismiss"
+        onClick={() => setError(null)}
+      >
+        <Icon name="close" className="size-4" />
+      </Button>
+    </div>
+  )
 }
 
-function DirectStage({ peerId }: { peerId: string }) {
+function GroupHeader({ roster }: { roster: Extract<CallState, { kind: 'group' }>['roster'] }) {
+  const joined = roster.filter((p) => p.state === 'joined').length
+  return <p className="p-4 text-center text-sm text-white/70">Group call · {joined} joined</p>
+}
+
+/**
+ * The 1:1 stage. The remote `<video>` is always mounted, because it is also the sink the remote
+ * *audio* plays through — hiding it on a voice call would mute the other person. When it has no
+ * picture to show (a voice call, or a video call that has not connected yet) the peer panel is
+ * drawn over the top of it rather than in place of it.
+ */
+function DirectStage({ call }: { call: DirectCall }) {
   const mediaVersion = useCallStore((s) => s.mediaVersion)
   const localVideo = useRef<HTMLVideoElement | null>(null)
   const remoteVideo = useRef<HTMLVideoElement | null>(null)
+  const [hasRemoteVideo, setHasRemoteVideo] = useState(false)
 
   // Streams are attached with `srcObject`, never a blob URL, and re-attached whenever the engine
   // says tracks changed — the objects themselves never enter React state.
   useEffect(() => {
+    const remote = getRemoteStream()
     if (localVideo.current) localVideo.current.srcObject = getLocalStream()
-    if (remoteVideo.current) remoteVideo.current.srcObject = getRemoteStream()
+    if (remoteVideo.current) remoteVideo.current.srcObject = remote
+    setHasRemoteVideo((remote?.getVideoTracks().length ?? 0) > 0)
   }, [mediaVersion])
+
+  const showLocalPreview = call.media === 'video'
 
   return (
     <div className="relative flex-1">
       <video ref={remoteVideo} autoPlay playsInline className="size-full bg-black object-contain" />
-      <video
-        ref={localVideo}
-        autoPlay
-        playsInline
-        muted
-        aria-label="Your camera"
-        className="absolute bottom-4 right-4 w-28 rounded-lg border border-border-subtle object-cover sm:w-40"
-      />
-      <span className="sr-only">{peerId}</span>
+
+      {hasRemoteVideo ? <FloatingLabel call={call} /> : <PeerPanel call={call} />}
+
+      {showLocalPreview ? (
+        <video
+          ref={localVideo}
+          autoPlay
+          playsInline
+          muted
+          aria-label="Your camera"
+          className="absolute bottom-4 right-4 w-28 rounded-lg border border-white/20 object-cover sm:w-40"
+        />
+      ) : null}
     </div>
   )
+}
+
+/** Name and duration over a live picture, where the picture is already doing the reassuring. */
+function FloatingLabel({ call }: { call: DirectCall }) {
+  const peer = useUser(call.peerId)
+  return (
+    <p className="absolute inset-x-0 top-0 p-4 text-center text-sm text-white/70">
+      {peer.data ? displayName(peer.data) : '…'}
+      {call.kind === 'connected' ? <> · <CallTimer since={call.startedAt} /></> : null}
+    </p>
+  )
+}
+
+/**
+ * The whole point of this change: while a call is being placed, this is what the user looks at
+ * instead of a black rectangle. Who is being called, that the invite has actually reached their
+ * device, and a counter proving the app has not simply frozen.
+ */
+function PeerPanel({ call }: { call: DirectCall }) {
+  const peer = useUser(call.peerId)
+  const outgoing = call.kind === 'outgoing'
+  // Counting up, not down: the server sends the *caller* no deadline — `ring_expires_at` rides the
+  // invite, which only the callee sees. An invented countdown would be a number we cannot stand
+  // behind; elapsed time is measured here and is always true.
+  const elapsed = useElapsed(outgoing ? call.placedAt : call.startedAt)
+
+  const status = outgoing
+    ? call.status === 'ringing'
+      ? 'Ringing…'
+      : 'Connecting…'
+    : call.media === 'video'
+      ? 'Waiting for their video…'
+      : 'Connected'
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+      <span className="relative flex items-center justify-center">
+        {/* Two staggered halos, the visual half of "it is ringing". `animate-ping` grows and fades
+            from the avatar's own footprint, so the rings read as coming off the person being
+            called. Hidden outright when the user has asked for reduced motion. */}
+        {outgoing ? (
+          <>
+            <span
+              aria-hidden="true"
+              className="absolute size-28 animate-ping rounded-full bg-white/10 motion-reduce:hidden"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute size-28 animate-ping rounded-full bg-white/10 [animation-delay:0.9s]
+                motion-reduce:hidden"
+            />
+          </>
+        ) : null}
+        <Avatar
+          avatarUrl={peer.data?.avatarUrl}
+          userId={call.peerId}
+          initials={initialsOf(peer.data)}
+          size="xl"
+          className="relative ring-2 ring-white/20"
+        />
+      </span>
+
+      <div className="space-y-1">
+        <p className="text-xl font-medium text-white">{peer.data ? displayName(peer.data) : '…'}</p>
+        {/* Polite, not assertive: the status changes mid-call and must not interrupt a screen
+            reader that is already reading something else out. */}
+        <p aria-live="polite" className="text-sm text-white/70">
+          {status}
+          {elapsed !== null ? ` · ${formatDuration(elapsed)}` : ''}
+        </p>
+        <p className="text-xs text-white/50">{call.media === 'video' ? 'Video call' : 'Voice call'}</p>
+      </div>
+    </div>
+  )
+}
+
+function CallTimer({ since }: { since: number }) {
+  const elapsed = useElapsed(since)
+  return <>{formatDuration(elapsed ?? 0)}</>
 }

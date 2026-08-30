@@ -7,7 +7,7 @@ export interface AvatarProps {
   /** Drives the fallback colour, so the same person is always the same colour. */
   userId?: string | undefined
   initials?: string | undefined
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
@@ -15,6 +15,8 @@ const SIZES = {
   sm: 'size-8 text-xs',
   md: 'size-10 text-sm',
   lg: 'size-16 text-lg',
+  /** The call stage, where the avatar is the whole subject of the screen rather than a row's mark. */
+  xl: 'size-28 text-3xl',
 } as const
 
 /** Fixed hues so a name is always the same colour, and none of them fight the accent. */
