@@ -19,12 +19,23 @@ export function useMe() {
   })
 }
 
+/**
+ * The one description of a profile query, so the several places that need one — `useUser` for a row,
+ * `useQueries` for a whole list at once — observe the very same cache entry rather than two keys
+ * that merely look alike.
+ */
+export function userQueryOptions(id: string) {
+  return {
+    queryKey: qk.user(id),
+    queryFn: () => getUser(id),
+    staleTime: PROFILE_STALE_MS,
+  }
+}
+
 export function useUser(id: string | null | undefined) {
   return useQuery<PublicUser>({
-    queryKey: qk.user(id ?? ''),
-    queryFn: () => getUser(id as string),
+    ...userQueryOptions(id ?? ''),
     enabled: Boolean(id),
-    staleTime: PROFILE_STALE_MS,
   })
 }
 

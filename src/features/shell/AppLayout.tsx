@@ -13,12 +13,18 @@ import { ConnectionBanner } from './ConnectionBanner'
 import { CallOverlay } from '@/features/calls/CallOverlay'
 import { IncomingCallToast } from '@/features/calls/IncomingCallToast'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Icon } from '@/components/Icon'
+import type { IconName } from '@/components/Icon'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Chats', end: true },
-  { to: '/contacts', label: 'Contacts', end: false },
-  { to: '/groups/new', label: 'New group', end: false },
-  { to: '/calls', label: 'Calls', end: false },
+/**
+ * The dock at the foot of the sidebar. Icon-only, so every entry carries its name twice — as the
+ * `aria-label` a screen reader reads, and as the `title` a pointer user hovers for (docs/UI.md §3).
+ */
+const NAV_ITEMS: { to: string; label: string; icon: IconName; end: boolean }[] = [
+  { to: '/', label: 'Chats', icon: 'chats', end: true },
+  { to: '/groups/new', label: 'New group', icon: 'group', end: false },
+  { to: '/calls', label: 'Calls', icon: 'phone', end: false },
+  { to: '/contacts', label: 'Contacts', icon: 'contacts', end: false },
 ]
 
 /**
@@ -112,24 +118,27 @@ export function AppLayout() {
             </Button>
           </header>
 
-          <nav className="grid grid-cols-2 gap-1 border-b border-border-subtle p-2">
+          <DialogList />
+
+          {/* The dock sits below the list, so the sidebar's own scroll never carries it out of reach. */}
+          <nav className="grid shrink-0 grid-cols-4 gap-1 border-t border-border-subtle p-2">
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
+                aria-label={item.label}
+                title={item.label}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 text-center text-sm ${
-                    isActive ? 'bg-surface-raised text-fg' : 'text-fg-muted hover:bg-surface-raised'
+                  `flex h-10 items-center justify-center rounded-lg ${
+                    isActive ? 'bg-surface-raised text-accent' : 'text-fg-muted hover:bg-surface-raised'
                   }`
                 }
               >
-                {item.label}
+                <Icon name={item.icon} />
               </NavLink>
             ))}
           </nav>
-
-          <DialogList />
         </aside>
 
         {/* min-w-0 is load-bearing: without it a long unbroken message blows the sidebar off-screen. */}

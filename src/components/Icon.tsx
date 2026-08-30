@@ -9,6 +9,10 @@ export type IconName =
   | 'close'
   | 'sun'
   | 'moon'
+  | 'chats'
+  | 'group'
+  | 'contacts'
+  | 'search'
 
 export interface IconProps {
   name: IconName
@@ -36,6 +40,10 @@ const MASKS: Record<IconName, string> = {
   close: '[mask-image:url(/icons/close.svg)]',
   sun: '[mask-image:url(/icons/sun.svg)]',
   moon: '[mask-image:url(/icons/moon.svg)]',
+  chats: '[mask-image:url(/icons/chats.svg)]',
+  group: '[mask-image:url(/icons/group.svg)]',
+  contacts: '[mask-image:url(/icons/contacts.svg)]',
+  search: '[mask-image:url(/icons/search.svg)]',
 }
 
 const MASK_BASE =
