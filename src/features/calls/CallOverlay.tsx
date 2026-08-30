@@ -192,10 +192,10 @@ function FloatingLabel({ call }: { call: DirectCall }) {
 function PeerPanel({ call }: { call: DirectCall }) {
   const peer = useUser(call.peerId)
   const outgoing = call.kind === 'outgoing'
-  // Counting up, not down: the server sends the *caller* no deadline — `ring_expires_at` rides the
-  // invite, which only the callee sees. An invented countdown would be a number we cannot stand
-  // behind; elapsed time is measured here and is always true.
-  const elapsed = useElapsed(outgoing ? call.placedAt : call.startedAt)
+  // Only a connected call has a duration. Ring time is not call time — a counter that starts when
+  // you press dial reads as talk time that never happened, and no phone has ever shown one. While
+  // it rings, the pulsing halo is what says the app is still alive.
+  const elapsed = useElapsed(outgoing ? null : call.startedAt)
 
   const status = outgoing
     ? call.status === 'ringing'

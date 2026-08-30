@@ -44,7 +44,6 @@ describe('CallOverlay, outgoing', () => {
       media: 'audio',
       ringExpiresAt: null,
       status: 'connecting',
-      placedAt: Date.now(),
     })
 
     renderOverlay()
@@ -63,7 +62,6 @@ describe('CallOverlay, outgoing', () => {
       media: 'video',
       ringExpiresAt: null,
       status: 'ringing',
-      placedAt: Date.now(),
     })
 
     renderOverlay()
@@ -74,20 +72,36 @@ describe('CallOverlay, outgoing', () => {
     expect(screen.getByLabelText('Your camera')).toBeInTheDocument()
   })
 
-  it('counts up from when the call was placed', () => {
+  it('shows no timer while it rings — ring time is not call time', () => {
     useCallStore.getState().setCall({
       kind: 'outgoing',
       callId: 'call-1',
       peerId: PEER.id,
       media: 'audio',
       ringExpiresAt: null,
-      placedAt: Date.now() - 7000,
       status: 'ringing',
     })
 
     renderOverlay()
 
-    expect(screen.getByText(/Ringing… · 0:07/)).toBeInTheDocument()
+    expect(screen.getByText('Ringing…')).toBeInTheDocument()
+    expect(screen.queryByText(/\d+:\d\d/)).not.toBeInTheDocument()
+  })
+})
+
+describe('CallOverlay, connected', () => {
+  it('starts the duration at the moment the call was answered', () => {
+    useCallStore.getState().setCall({
+      kind: 'connected',
+      callId: 'call-1',
+      peerId: PEER.id,
+      media: 'audio',
+      startedAt: Date.now() - 65_000,
+    })
+
+    renderOverlay()
+
+    expect(screen.getByText(/Connected · 1:05/)).toBeInTheDocument()
   })
 })
 

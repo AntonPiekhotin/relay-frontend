@@ -29,8 +29,6 @@ export type CallState =
       media: CallMedia
       ringExpiresAt: Iso | null
       status: OutgoingStatus
-      /** Local epoch millis, for the elapsed counter. The server sends the caller no deadline. */
-      placedAt: number
     }
   | { kind: 'incoming'; callId: string; from: string; media: CallMedia; sdp: string; ringExpiresAt: Iso }
   | { kind: 'connected'; callId: string; peerId: string; media: CallMedia; startedAt: number }

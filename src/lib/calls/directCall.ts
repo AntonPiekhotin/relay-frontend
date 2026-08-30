@@ -93,19 +93,11 @@ export async function startDirectCall(peerId: string, media: CallMedia, dialogId
       return
     }
 
-    // The caller is never told a deadline: `ring_expires_at` rides the *invite*, which only the
-    // callee receives, and the `state` verb carries nothing but a `status` string. So the caller's
-    // UI counts up from here rather than down from a number we do not have, and says "Ringing" only
-    // once `state` says so — until then the honest word is "Connecting".
-    store.setCall({
-      kind: 'outgoing',
-      callId,
-      peerId,
-      media,
-      ringExpiresAt: null,
-      status: 'connecting',
-      placedAt: Date.now(),
-    })
+    // No deadline reaches the caller: `ring_expires_at` rides the *invite*, which only the callee
+    // receives, and the `state` verb carries nothing but a `status` string. So there is no honest
+    // number to show while this rings — only a stage, and the word "Ringing" once `state` says so.
+    // Until then the honest word is "Connecting".
+    store.setCall({ kind: 'outgoing', callId, peerId, media, ringExpiresAt: null, status: 'connecting' })
     store.setMic(true)
     store.setCamera(media === 'video')
     store.bumpMedia()
