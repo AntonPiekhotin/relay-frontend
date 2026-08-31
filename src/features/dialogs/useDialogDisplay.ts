@@ -3,6 +3,7 @@ import { peerIdOf, useDialogPeerId } from '@/queries/useDialogs'
 import { displayName, initialsOf, useUser, userQueryOptions } from '@/queries/useUser'
 import { useAuthStore } from '@/stores/authStore'
 import type { DialogSummary } from '@/lib/api/types'
+import { useT } from '@/lib/i18n'
 
 export interface DialogDisplay {
   name: string
@@ -17,12 +18,13 @@ export interface DialogDisplay {
  * carries `title`; its members still resolve through user-service.
  */
 export function useDialogDisplay(dialog: DialogSummary | undefined): DialogDisplay {
+  const t = useT()
   const peerId = useDialogPeerId(dialog)
   const peer = useUser(peerId)
 
   if (dialog?.type === 'group') {
     return {
-      name: dialog.title ?? 'Group',
+      name: dialog.title ?? t.dialogs.group,
       initials: (dialog.title ?? 'G').trim().slice(0, 2).toUpperCase(),
       avatarUrl: null,
       peerId: null,
@@ -30,7 +32,7 @@ export function useDialogDisplay(dialog: DialogSummary | undefined): DialogDispl
   }
 
   return {
-    name: peer.data ? displayName(peer.data) : peer.isLoading ? '' : 'Unknown user',
+    name: peer.data ? displayName(peer.data) : peer.isLoading ? '' : t.dialogs.unknownUser,
     initials: initialsOf(peer.data),
     avatarUrl: peer.data?.avatarUrl ?? null,
     peerId,
@@ -46,6 +48,7 @@ export function useDialogDisplay(dialog: DialogSummary | undefined): DialogDispl
  * A dialog whose peer has not resolved yet maps to `''`: unknown, not "matches everything".
  */
 export function useDialogNames(dialogs: readonly DialogSummary[]): Map<string, string> {
+  const t = useT()
   const myId = useAuthStore((s) => s.userId)
 
   const peerIds = [...new Set(dialogs.map((d) => peerIdOf(d, myId)).filter((id): id is string => id !== null))]
@@ -59,7 +62,7 @@ export function useDialogNames(dialogs: readonly DialogSummary[]): Map<string, s
 
   return new Map(
     dialogs.map((dialog) => {
-      if (dialog.type === 'group') return [dialog.dialogId, dialog.title ?? 'Group']
+      if (dialog.type === 'group') return [dialog.dialogId, dialog.title ?? t.dialogs.group]
       const peerId = peerIdOf(dialog, myId)
       return [dialog.dialogId, (peerId ? byPeerId.get(peerId) : '') ?? '']
     }),

@@ -9,6 +9,7 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
 import type { PublicUser } from '@/lib/api/types'
+import { useT } from '@/lib/i18n'
 
 export interface MemberPickerProps {
   selected: PublicUser[]
@@ -26,6 +27,7 @@ const MIN_QUERY_LENGTH = 2
  * connects. So members are always picked from search results, never typed (docs/REST-API.md §2).
  */
 export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlots }: MemberPickerProps) {
+  const t = useT()
   const [term, setTerm] = useState('')
   const debounced = useDebounced(term.trim(), 300)
   const enabled = debounced.length >= MIN_QUERY_LENGTH
@@ -52,7 +54,7 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
                 type="button"
                 onClick={() => toggle(user)}
                 className="flex items-center gap-2 rounded-full bg-surface-raised py-1 pl-1 pr-3 text-sm hover:bg-surface-hover"
-                aria-label={`Remove ${displayName(user)}`}
+                aria-label={t.groups.removePerson(displayName(user))}
               >
                 <Avatar avatarUrl={user.avatarUrl} userId={user.id} initials={initialsOf(user)} size="sm" />
                 {displayName(user)}
@@ -64,18 +66,18 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
       ) : null}
 
       <Input
-        label="Add people"
-        placeholder="Name, or an exact email"
+        label={t.groups.addPeople}
+        placeholder={t.contacts.searchPlaceholder}
         value={term}
         onChange={(e) => setTerm(e.target.value)}
       />
 
       {!enabled ? (
-        <p className="text-xs text-fg-subtle">Type at least two characters.</p>
+        <p className="text-xs text-fg-subtle">{t.contacts.typeMore}</p>
       ) : results.isPending ? (
         <Spinner />
       ) : results.isError ? (
-        <p className="text-xs text-danger">Search failed. Try again.</p>
+        <p className="text-xs text-danger">{t.contacts.searchFailedRetry}</p>
       ) : (
         <ul className="max-h-64 space-y-1 overflow-y-auto">
           {results.data.items.map(({ user }) => {
@@ -93,7 +95,7 @@ export function MemberPicker({ selected, onChange, excludeIds = [], remainingSlo
                   disabled={already || (!isSelected(user.id) && remainingSlots <= 0)}
                   onClick={() => toggle(user)}
                 >
-                  {already ? 'In group' : isSelected(user.id) ? 'Remove' : 'Add'}
+                  {already ? t.groups.inGroup : isSelected(user.id) ? t.common.remove : t.common.add}
                 </Button>
               </li>
             )

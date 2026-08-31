@@ -10,15 +10,18 @@ import {Input} from '@/components/Input'
 import {Modal} from '@/components/Modal'
 import {Spinner} from '@/components/Spinner'
 import {ThemePicker} from '@/components/ThemePicker'
+import {LanguagePicker} from '@/components/LanguagePicker'
 import {clearAvatarCache} from '@/lib/avatar'
 import {signOut} from '@/stores/authStore'
 import {useOutboxStore} from '@/stores/outboxStore'
+import {useT} from '@/lib/i18n'
 
 /** The server rejects anything larger with a 413; check here so the byte upload never happens. */
 const MAX_AVATAR_BYTES = 1024 * 1024
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
 
 export function ProfilePage() {
+    const t = useT()
     const qc = useQueryClient()
     const me = useMe()
     const [firstName, setFirstName] = useState('')
@@ -79,7 +82,7 @@ export function ProfilePage() {
 
     return (
         <div className="mx-auto w-full max-w-lg space-y-8 overflow-y-auto p-4 sm:p-6">
-            <h1 className="text-lg font-semibold">Your profile</h1>
+            <h1 className="text-lg font-semibold">{t.profile.title}</h1>
 
             <section className="flex items-center gap-4">
                 <Avatar avatarUrl={me.data?.avatarUrl} userId={me.data?.id} initials={initialsOf(me.data)} size="lg"/>
@@ -87,15 +90,15 @@ export function ProfilePage() {
                     <div className="flex gap-2">
                         <Button variant="secondary" size="sm" onClick={() => filePicker.current?.click()}>
                             {avatar.isPending ? <Spinner/> : null}
-                            Change picture
+                            {t.profile.changePicture}
                         </Button>
                         {me.data?.avatarUrl ? (
                             <Button variant="ghost" size="sm" onClick={() => clearAvatar.mutate()}>
-                                Remove
+                                {t.common.remove}
                             </Button>
                         ) : null}
                     </div>
-                    <p className="text-xs text-fg-subtle">PNG, JPEG, WebP or GIF, up to 1 MB.</p>
+                    <p className="text-xs text-fg-subtle">{t.profile.pictureHint}</p>
                     {fileError ? <p className="text-xs text-danger">{fileError}</p> : null}
                     {avatar.isError ? <p className="text-xs text-danger">{friendlyError(avatar.error)}</p> : null}
                     <input
@@ -109,12 +112,12 @@ export function ProfilePage() {
                             if (!file) return
                             setFileError(null)
                             if (file.size > MAX_AVATAR_BYTES) {
-                                setFileError('That picture is larger than 1 MB.')
+                                setFileError(t.profile.pictureTooLarge)
                                 return
                             }
                             // The server sniffs the real type from the bytes, so expect it to disagree with this.
                             if (!ACCEPTED.includes(file.type)) {
-                                setFileError('That file type is not supported.')
+                                setFileError(t.profile.pictureUnsupported)
                                 return
                             }
                             avatar.mutate(file)
@@ -132,7 +135,7 @@ export function ProfilePage() {
             >
                 <div className="flex gap-3">
                     <Input
-                        label="First name"
+                        label={t.auth.firstName}
                         required
                         value={firstName}
                         onChange={(e) => {
@@ -141,7 +144,7 @@ export function ProfilePage() {
                         }}
                     />
                     <Input
-                        label="Last name"
+                        label={t.auth.lastName}
                         required
                         value={lastName}
                         onChange={(e) => {
@@ -150,45 +153,50 @@ export function ProfilePage() {
                         }}
                     />
                 </div>
-                <Input label="Email" value={me.data?.email ?? ''} disabled readOnly/>
+                <Input label={t.auth.email} value={me.data?.email ?? ''} disabled readOnly/>
 
                 {save.isError ? <p className="text-sm text-danger">{friendlyError(save.error)}</p> : null}
-                {save.isSuccess ? <p className="text-sm text-fg-muted">Saved.</p> : null}
+                {save.isSuccess ? <p className="text-sm text-fg-muted">{t.common.saved}</p> : null}
 
                 <Button type="submit" disabled={save.isPending || !firstName.trim() || !lastName.trim()}>
                     {save.isPending ? <Spinner/> : null}
-                    Save
+                    {t.common.save}
                 </Button>
             </form>
 
             <section className="space-y-2">
-                <h2 className="text-sm font-semibold">Appearance</h2>
+                <h2 className="text-sm font-semibold">{t.profile.appearance}</h2>
                 <ThemePicker/>
             </section>
 
+            <section className="space-y-2">
+                <h2 className="text-sm font-semibold">{t.language.label}</h2>
+                <LanguagePicker/>
+            </section>
+
             <section className="space-y-2 border-t border-border-subtle pt-6">
-                <h2 className="text-sm font-semibold">Account</h2>
+                <h2 className="text-sm font-semibold">{t.profile.account}</h2>
                 <Button variant="danger" size="sm" onClick={() => setConfirmingSignOut(true)}>
-                    Sign out
+                    {t.profile.signOut}
                 </Button>
             </section>
 
             <Modal
                 open={confirmingSignOut}
-                title="Sign out?"
+                title={t.profile.signOutTitle}
                 onClose={() => setConfirmingSignOut(false)}
                 footer={
                     <>
                         <Button variant="secondary" size="sm" onClick={() => setConfirmingSignOut(false)}>
-                            Cancel
+                            {t.common.cancel}
                         </Button>
                         <Button variant="danger" size="sm" onClick={performSignOut}>
-                            Sign out
+                            {t.profile.signOut}
                         </Button>
                     </>
                 }
             >
-                Are you sure you want to sign out?
+                {t.profile.signOutBody}
             </Modal>
         </div>
     )

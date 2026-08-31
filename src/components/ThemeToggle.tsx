@@ -1,6 +1,7 @@
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
 import { useThemeStore } from '@/stores/themeStore'
+import { useT } from '@/lib/i18n'
 
 export interface ThemeToggleProps {
   className?: string
@@ -15,10 +16,11 @@ export interface ThemeToggleProps {
  * Pressing it is an explicit choice, so it also ends the OS following that `system` sets up.
  */
 export function ThemeToggle({ className = '' }: ThemeToggleProps) {
+  const t = useT()
   const resolved = useThemeStore((s) => s.resolved)
   const toggle = useThemeStore((s) => s.toggle)
   const next = resolved === 'dark' ? 'light' : 'dark'
-  const label = `Switch to ${next} theme`
+  const label = t.theme.switchTo(next)
 
   return (
     <Button

@@ -6,6 +6,7 @@
  */
 
 import type { CallMedia } from '@/lib/protocol/types'
+import { translate } from '@/lib/i18n'
 
 /**
  * `getUserMedia` requires a secure context — `localhost` counts, a LAN IP does not. Testing from
@@ -26,17 +27,18 @@ export function stopStream(stream: MediaStream | null): void {
 
 /** A denied prompt is a normal outcome, and "no permission" and "no camera" are different problems. */
 export function mediaErrorMessage(error: unknown): string {
+  const t = translate()
   const name = error instanceof Error ? error.name : ''
   switch (name) {
     case 'NotAllowedError':
     case 'SecurityError':
-      return 'Camera and microphone access was blocked. Allow it in your browser to call.'
+      return t.calls.mediaBlocked
     case 'NotFoundError':
     case 'OverconstrainedError':
-      return 'No camera or microphone was found.'
+      return t.calls.mediaMissing
     case 'NotReadableError':
-      return 'Your camera or microphone is already in use by another app.'
+      return t.calls.mediaBusy
     default:
-      return 'Could not start your camera or microphone.'
+      return t.calls.mediaFailed
   }
 }

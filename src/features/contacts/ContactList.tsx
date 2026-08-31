@@ -10,12 +10,14 @@ import { Button } from '@/components/Button'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { SkeletonRows } from '@/components/SkeletonRows'
+import { useT } from '@/lib/i18n'
 
 /**
  * Contacts are the one offset-paginated surface, and they page by `hasNext` — never by comparing
  * `page` against `totalPages` (docs/REST-API.md §3). Do not copy this shape onto messages.
  */
 export function ContactList() {
+  const t = useT()
   const [page, setPage] = useState(0)
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -40,15 +42,15 @@ export function ContactList() {
 
   if (contacts.isPending) return <SkeletonRows count={4} />
   if (contacts.isError) {
-    return <ErrorState error={contacts.error} what="Could not load your contacts." onRetry={() => void contacts.refetch()} />
+    return <ErrorState error={contacts.error} what={t.contacts.couldNotLoad} onRetry={() => void contacts.refetch()} />
   }
   if (contacts.data.items.length === 0) {
-    return <EmptyState title="No contacts yet" hint="Search above to find people and add them." />
+    return <EmptyState title={t.contacts.emptyTitle} hint={t.contacts.emptyHint} />
   }
 
   return (
     <section className="space-y-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">Contacts</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t.contacts.title}</h2>
       <ul className="space-y-1">
         {contacts.data.items.map(({ user }) => (
           <li key={user.id} className="flex items-center gap-3 rounded-lg p-2 hover:bg-surface-raised">
@@ -58,10 +60,10 @@ export function ContactList() {
               <p className="truncate text-xs text-fg-subtle">{user.email}</p>
             </div>
             <Button variant="secondary" size="sm" onClick={() => remove.mutate(user.id)}>
-              Remove
+              {t.common.remove}
             </Button>
             <Button size="sm" onClick={() => open.mutate(user.id)}>
-              Message
+              {t.common.message}
             </Button>
           </li>
         ))}
@@ -69,11 +71,11 @@ export function ContactList() {
 
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
-          Previous
+          {t.common.previous}
         </Button>
-        <span className="text-xs text-fg-subtle">Page {page + 1}</span>
+        <span className="text-xs text-fg-subtle">{t.contacts.page(page + 1)}</span>
         <Button variant="ghost" size="sm" disabled={!contacts.data.hasNext} onClick={() => setPage((p) => p + 1)}>
-          Next
+          {t.common.next}
         </Button>
       </div>
     </section>

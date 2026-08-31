@@ -1,5 +1,6 @@
 import { usePresenceStore } from '@/stores/presenceStore'
 import { formatLastSeen } from '@/lib/time'
+import { useT } from '@/lib/i18n'
 
 export interface PresenceLineProps {
   /** Null for a group — presence is per person, and a group header names members instead. */
@@ -12,11 +13,12 @@ export interface PresenceLineProps {
  * never "a long time ago", and never as an error (docs/REALTIME.md §5).
  */
 export function PresenceLine({ peerId }: PresenceLineProps) {
+  const t = useT()
   const presence = usePresenceStore((s) => (peerId ? s.byUser[peerId] : undefined))
 
   if (!peerId || !presence) return null
-  if (presence.online) return <span className="text-xs text-success">Online</span>
+  if (presence.online) return <span className="text-xs text-success">{t.chat.online}</span>
 
   const lastSeen = formatLastSeen(presence.lastSeen)
-  return <span className="text-xs text-fg-subtle">{lastSeen ? `Offline · ${lastSeen}` : 'Offline'}</span>
+  return <span className="text-xs text-fg-subtle">{lastSeen ? `${t.chat.offline} · ${lastSeen}` : t.chat.offline}</span>
 }

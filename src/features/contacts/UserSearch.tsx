@@ -13,11 +13,13 @@ import { EmptyState } from '@/components/EmptyState'
 import { ErrorState } from '@/components/ErrorState'
 import { Spinner } from '@/components/Spinner'
 import type { SearchHit } from '@/lib/api/types'
+import { useT } from '@/lib/i18n'
 
 /** Shorter than this is a 400 — gate it here rather than asking the server to reject it. */
 const MIN_QUERY_LENGTH = 2
 
 export function UserSearch() {
+  const t = useT()
   const [term, setTerm] = useState('')
   const debounced = useDebounced(term.trim(), 300)
   const enabled = debounced.length >= MIN_QUERY_LENGTH
@@ -31,23 +33,23 @@ export function UserSearch() {
   return (
     <section className="space-y-3">
       <Input
-        label="Find people"
-        placeholder="Name, or an exact email"
+        label={t.contacts.findPeople}
+        placeholder={t.contacts.searchPlaceholder}
         value={term}
         onChange={(e) => setTerm(e.target.value)}
       />
 
       {/* Names match by prefix, email only exactly — a prefix match on email would harvest addresses. */}
       {!enabled ? (
-        <p className="text-xs text-fg-subtle">Type at least two characters.</p>
+        <p className="text-xs text-fg-subtle">{t.contacts.typeMore}</p>
       ) : results.isPending ? (
         <div className="flex justify-center p-4">
           <Spinner />
         </div>
       ) : results.isError ? (
-        <ErrorState error={results.error} what="Search failed." onRetry={() => void results.refetch()} />
+        <ErrorState error={results.error} what={t.contacts.searchFailed} onRetry={() => void results.refetch()} />
       ) : results.data.items.length === 0 ? (
-        <EmptyState title="Nobody found" hint="Names match from the start; an email has to be exact." />
+        <EmptyState title={t.contacts.nobodyTitle} hint={t.contacts.nobodyHint} />
       ) : (
         <ul className="space-y-1">
           {results.data.items.map((hit) => (
@@ -60,6 +62,7 @@ export function UserSearch() {
 }
 
 function PersonRow({ hit }: { hit: SearchHit }) {
+  const t = useT()
   const navigate = useNavigate()
   const qc = useQueryClient()
 
@@ -88,10 +91,10 @@ function PersonRow({ hit }: { hit: SearchHit }) {
         <p className="truncate text-xs text-fg-subtle">{hit.user.email}</p>
       </div>
       <Button variant="secondary" size="sm" onClick={() => contact.mutate()} disabled={contact.isPending}>
-        {hit.contact ? 'Remove' : 'Add'}
+        {hit.contact ? t.common.remove : t.common.add}
       </Button>
       <Button size="sm" onClick={() => open.mutate()} disabled={open.isPending}>
-        Message
+        {t.common.message}
       </Button>
     </li>
   )

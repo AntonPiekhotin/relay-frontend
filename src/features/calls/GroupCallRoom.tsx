@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react'
 import { getRoom } from '@/lib/calls/groupCall'
 import { useCallStore } from '@/stores/callStore'
 import { displayName, useUser } from '@/queries/useUser'
+import { useT } from '@/lib/i18n'
 
 /**
  * The SDK owns who is publishing; `call.signal` owns who was invited. These are not reconciled
  * frame by frame — this reads the room whenever the engine bumps `mediaVersion` (docs/CALLS.md §2).
  */
 export function GroupCallRoom() {
+  const t = useT()
   const mediaVersion = useCallStore((s) => s.mediaVersion)
   const room = getRoom()
   const identities = room ? [...room.remoteParticipants.keys()] : []
@@ -16,7 +18,7 @@ export function GroupCallRoom() {
     <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-2 p-2 sm:grid-cols-2">
       {identities.length === 0 ? (
         <p className="flex items-center justify-center text-sm text-fg-subtle sm:col-span-2">
-          Waiting for others to join…
+          {t.calls.waitingForOthers}
         </p>
       ) : (
         identities.map((identity) => (

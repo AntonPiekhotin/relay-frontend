@@ -1,5 +1,6 @@
 import { displayName, useUser } from '@/queries/useUser'
 import type { ChatMessage } from '@/lib/chat/message'
+import { useT, type Messages } from '@/lib/i18n'
 
 export interface SystemMessageRowProps {
   message: ChatMessage
@@ -17,35 +18,36 @@ export interface SystemMessageRowProps {
  * folder may not import from another feature folder (docs/ARCHITECTURE.md §3).
  */
 export function SystemMessageRow({ message, dialogTitle }: SystemMessageRowProps) {
+  const t = useT()
   const actor = useUser(message.senderId)
   const target = useUser(message.targetUserId)
 
-  const actorName = actor.data ? displayName(actor.data) : 'Someone'
-  const targetName = target.data ? displayName(target.data) : 'someone'
-  const title = message.title ?? dialogTitle ?? 'the group'
+  const actorName = actor.data ? displayName(actor.data) : t.system.someone
+  const targetName = target.data ? displayName(target.data) : t.system.someoneObject
+  const title = message.title ?? dialogTitle ?? t.system.theGroup
 
   return (
     <li className="flex justify-center">
       <p className="rounded-full bg-surface-raised px-3 py-1 text-center text-xs text-fg-muted">
-        {sentenceFor(message.kind, actorName, targetName, title)}
+        {sentenceFor(t, message.kind, actorName, targetName, title)}
       </p>
     </li>
   )
 }
 
-function sentenceFor(kind: string, actor: string, target: string, title: string): string {
+function sentenceFor(t: Messages, kind: string, actor: string, target: string, title: string): string {
   switch (kind) {
     case 'group_created':
-      return `${actor} created "${title}"`
+      return t.system.created(actor, title)
     case 'group_renamed':
-      return `${actor} renamed the group to "${title}"`
+      return t.system.renamed(actor, title)
     case 'member_added':
-      return `${actor} added ${target}`
+      return t.system.memberAdded(actor, target)
     case 'member_removed':
-      return `${actor} removed ${target}`
+      return t.system.memberRemoved(actor, target)
     case 'member_left':
-      return `${actor} left`
+      return t.system.memberLeft(actor)
     default:
-      return `${actor} updated the conversation`
+      return t.system.updated(actor)
   }
 }

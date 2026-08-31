@@ -12,16 +12,17 @@ import { IncomingCallToast } from '@/features/calls/IncomingCallToast'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Icon } from '@/components/Icon'
 import type { IconName } from '@/components/Icon'
+import { useT, type Messages } from '@/lib/i18n'
 
 /**
  * The dock at the foot of the sidebar. Icon-only, so every entry carries its name twice — as the
  * `aria-label` a screen reader reads, and as the `title` a pointer user hovers for (docs/UI.md §3).
  */
-const NAV_ITEMS: { to: string; label: string; icon: IconName; end: boolean }[] = [
-  { to: '/', label: 'Chats', icon: 'chats', end: true },
-  { to: '/groups/new', label: 'New group', icon: 'group', end: false },
-  { to: '/calls', label: 'Calls', icon: 'phone', end: false },
-  { to: '/contacts', label: 'Contacts', icon: 'contacts', end: false },
+const NAV_ITEMS: { to: string; label: (t: Messages) => string; icon: IconName; end: boolean }[] = [
+  { to: '/', label: (t) => t.nav.chats, icon: 'chats', end: true },
+  { to: '/groups/new', label: (t) => t.nav.newGroup, icon: 'group', end: false },
+  { to: '/calls', label: (t) => t.nav.calls, icon: 'phone', end: false },
+  { to: '/contacts', label: (t) => t.nav.contacts, icon: 'contacts', end: false },
 ]
 
 /**
@@ -35,6 +36,7 @@ const NAV_ITEMS: { to: string; label: string; icon: IconName; end: boolean }[] =
  * is why it is the only cross-feature import in the app (docs/ARCHITECTURE.md §3).
  */
 export function AppLayout() {
+  const t = useT()
   const me = useMe()
   const queryClient = useQueryClient()
   const location = useLocation()
@@ -68,7 +70,7 @@ export function AppLayout() {
           variant="ghost"
           size="sm"
           className="px-2"
-          aria-label="Open conversations"
+          aria-label={t.nav.openConversations}
           aria-expanded={drawerOpen}
           onClick={() => setDrawerOpen(true)}
         >
@@ -108,8 +110,8 @@ export function AppLayout() {
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                aria-label={item.label}
-                title={item.label}
+                aria-label={item.label(t)}
+                title={item.label(t)}
                 className={({ isActive }) =>
                   `flex h-10 items-center justify-center rounded-lg ${
                     isActive ? 'bg-surface-raised text-accent' : 'text-fg-muted hover:bg-surface-raised'

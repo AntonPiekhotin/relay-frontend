@@ -16,10 +16,12 @@ import { ErrorState } from '@/components/ErrorState'
 import { Spinner } from '@/components/Spinner'
 import { MemberPicker } from './MemberPicker'
 import type { PublicUser } from '@/lib/api/types'
+import { useT } from '@/lib/i18n'
 
 const MAX_MEMBERS_INCLUDING_ME = 50
 
 export function GroupInfoPage() {
+  const t = useT()
   const { dialogId } = useParams<{ dialogId: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -71,10 +73,10 @@ export function GroupInfoPage() {
   if (!dialogId) return null
   if (dialog.isPending) return <Spinner className="m-6 size-6" />
   if (dialog.isError) {
-    return <ErrorState error={dialog.error} what="This conversation is no longer available." />
+    return <ErrorState error={dialog.error} what={t.chat.gone} />
   }
   if (dialog.data.type !== 'group') {
-    return <ErrorState error={null} what="This is not a group conversation." />
+    return <ErrorState error={null} what={t.groups.notAGroup} />
   }
 
   /**
@@ -88,17 +90,17 @@ export function GroupInfoPage() {
   return (
     <div className="mx-auto w-full max-w-lg space-y-8 overflow-y-auto p-4 sm:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">{dialog.data.title ?? 'Group'}</h1>
+        <h1 className="text-lg font-semibold">{dialog.data.title ?? t.dialogs.group}</h1>
         <Link to={`/d/${dialogId}`} className="text-sm text-accent hover:underline">
-          Back to chat
+          {t.groups.backToChat}
         </Link>
       </div>
 
       {isOwner ? (
         <section className="space-y-3">
-          <Input label="Group name" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <Input label={t.groups.name} value={title} onChange={(e) => setTitle(e.target.value)} />
           <Button size="sm" disabled={!title.trim() || rename.isPending} onClick={() => rename.mutate()}>
-            Rename
+            {t.groups.rename}
           </Button>
           {rename.isError ? <p className="text-sm text-danger">{friendlyError(rename.error)}</p> : null}
         </section>
@@ -106,7 +108,7 @@ export function GroupInfoPage() {
 
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-          Members ({dialog.data.participantIds.length} of {MAX_MEMBERS_INCLUDING_ME})
+          {t.groups.membersHeading(dialog.data.participantIds.length, MAX_MEMBERS_INCLUDING_ME)}
         </h2>
         <ul className="space-y-1">
           {dialog.data.participantIds.map((id) => (
@@ -124,7 +126,7 @@ export function GroupInfoPage() {
 
       {isOwner ? (
         <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">Add members</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t.groups.addMembers}</h2>
           <MemberPicker
             selected={adding}
             onChange={setAdding}
@@ -132,7 +134,7 @@ export function GroupInfoPage() {
             remainingSlots={remainingSlots}
           />
           <Button size="sm" disabled={adding.length === 0 || add.isPending} onClick={() => add.mutate()}>
-            Add {adding.length > 0 ? adding.length : ''}
+            {t.groups.addCount(adding.length)}
           </Button>
           {/* Adding somebody who is already in is a silent no-op server-side, not an error. */}
           {add.isError ? <p className="text-sm text-danger">{friendlyError(add.error)}</p> : null}
@@ -143,33 +145,32 @@ export function GroupInfoPage() {
         {/* The owner cannot leave — a 422. They delete the group or keep it. */}
         {hasOwner && !isOwner ? (
           <Button variant="secondary" onClick={() => leave.mutate()} disabled={leave.isPending}>
-            Leave group
+            {t.groups.leave}
           </Button>
         ) : null}
         {isOwner ? (
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-            Delete group
+            {t.groups.delete}
           </Button>
         ) : null}
       </section>
 
       <Modal
         open={confirmDelete}
-        title="Delete this group?"
+        title={t.groups.deleteTitle}
         onClose={() => setConfirmDelete(false)}
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button variant="danger" disabled={destroy.isPending} onClick={() => destroy.mutate()}>
-              Delete
+              {t.groups.deleteConfirm}
             </Button>
           </>
         }
       >
-        The conversation, its membership and every message in it are deleted for everyone. This
-        cannot be undone.
+        {t.groups.deleteBody}
       </Modal>
     </div>
   )
@@ -183,17 +184,18 @@ interface MemberRowProps {
 }
 
 function MemberRow({ userId, isOwner, canRemove, onRemove }: MemberRowProps) {
+  const t = useT()
   const user = useUser(userId)
   return (
     <li className="flex items-center gap-3 rounded-lg p-2 hover:bg-surface-raised">
       <Avatar avatarUrl={user.data?.avatarUrl} userId={userId} initials={initialsOf(user.data)} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{user.data ? displayName(user.data) : 'Loading…'}</p>
-        {isOwner ? <p className="text-xs text-fg-subtle">Owner</p> : null}
+        <p className="truncate text-sm">{user.data ? displayName(user.data) : `${t.common.loading}…`}</p>
+        {isOwner ? <p className="text-xs text-fg-subtle">{t.groups.owner}</p> : null}
       </div>
       {canRemove ? (
         <Button variant="ghost" size="sm" onClick={onRemove}>
-          Remove
+          {t.common.remove}
         </Button>
       ) : null}
     </li>

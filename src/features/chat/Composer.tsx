@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
+import { useT } from '@/lib/i18n'
 
 export interface ComposerProps {
   /** Focus follows the conversation: opening one puts the cursor in the box. */
@@ -15,6 +16,7 @@ export interface ComposerProps {
 const MAX_ROWS_PX = 160
 
 export function Composer({ dialogId, disabled = false, onSend, onTyping }: ComposerProps) {
+  const t = useT()
   const [text, setText] = useState('')
   const box = useRef<HTMLTextAreaElement | null>(null)
 
@@ -56,8 +58,8 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
         ref={box}
         rows={1}
         value={text}
-        aria-label="Message"
-        placeholder="Write a message…"
+        aria-label={t.chat.composerLabel}
+        placeholder={t.chat.composerPlaceholder}
         className="max-h-40 min-h-10 w-full min-w-0 flex-1 resize-none rounded-lg border border-border-subtle
           bg-surface-raised px-3 py-2 text-base text-fg placeholder:text-fg-subtle focus:border-accent
           focus:outline-none sm:text-sm"
@@ -78,8 +80,8 @@ export function Composer({ dialogId, disabled = false, onSend, onTyping }: Compo
         type="submit"
         size="icon"
         className="shrink-0"
-        aria-label="Send"
-        title="Send"
+        aria-label={t.chat.send}
+        title={t.chat.send}
         disabled={!text.trim() || disabled}
       >
         <Icon name="send" />

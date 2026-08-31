@@ -1,6 +1,7 @@
 import { formatTime } from '@/lib/time'
 import type { ChatMessage } from '@/lib/chat/message'
 import { Button } from '@/components/Button'
+import { useT } from '@/lib/i18n'
 
 export interface MessageRowProps {
   message: ChatMessage
@@ -26,6 +27,7 @@ export function MessageRow({
   onRetry,
   onDiscard,
 }: MessageRowProps) {
+  const t = useT()
   return (
     <li className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -49,15 +51,15 @@ export function MessageRow({
 
         {message.state === 'FAILED' ? (
           <p className="mt-1 flex items-center gap-2 text-[11px] text-red-300">
-            Not sent.
+            {t.chat.notSent}
             {onRetry ? (
               <Button variant="ghost" size="sm" className="h-6 px-2 text-[11px]" onClick={onRetry}>
-                Retry
+                {t.common.retry}
               </Button>
             ) : null}
             {onDiscard ? (
               <Button variant="ghost" size="sm" className="h-6 px-2 text-[11px]" onClick={onDiscard}>
-                Discard
+                {t.common.discard}
               </Button>
             ) : null}
           </p>
@@ -72,7 +74,8 @@ export function MessageRow({
  * "durably persisted", and nothing in this protocol would ever tell us the recipient has it.
  */
 function StateMark({ state, isRead }: { state: ChatMessage['state']; isRead: boolean }) {
-  if (state === 'PENDING') return <span title="Queued">🕘</span>
-  if (state === 'FAILED') return <span title="Not sent">!</span>
-  return <span title={isRead ? 'Read' : 'Sent'}>{isRead ? '✓✓' : '✓'}</span>
+  const t = useT()
+  if (state === 'PENDING') return <span title={t.chat.queuedMark}>🕘</span>
+  if (state === 'FAILED') return <span title={t.chat.notSentMark}>!</span>
+  return <span title={isRead ? t.chat.readMark : t.chat.sentMark}>{isRead ? '✓✓' : '✓'}</span>
 }

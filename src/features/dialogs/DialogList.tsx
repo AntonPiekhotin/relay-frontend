@@ -8,8 +8,10 @@ import { Input } from '@/components/Input'
 import { SkeletonRows } from '@/components/SkeletonRows'
 import { DialogListItem } from './DialogListItem'
 import { useDialogNames } from './useDialogDisplay'
+import { useT } from '@/lib/i18n'
 
 export function DialogList() {
+  const t = useT()
   const dialogs = useDialogs()
   const [term, setTerm] = useState('')
   const sentinel = useRef<HTMLDivElement | null>(null)
@@ -42,8 +44,8 @@ export function DialogList() {
         />
         <Input
           type="search"
-          aria-label="Search conversations"
-          placeholder="Search conversations"
+          aria-label={t.dialogs.search}
+          placeholder={t.dialogs.search}
           className="pl-9"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
@@ -55,24 +57,24 @@ export function DialogList() {
       ) : dialogs.isError ? (
         <ErrorState
           error={dialogs.error}
-          what="Could not load your conversations."
+          what={t.dialogs.couldNotLoad}
           onRetry={() => void dialogs.refetch()}
         />
       ) : items.length === 0 ? (
         <EmptyState
-          title="No conversations yet"
-          hint="Find someone in Contacts to start a conversation."
+          title={t.dialogs.emptyTitle}
+          hint={t.dialogs.emptyHint}
           action={
             <Link
               to="/contacts"
               className="rounded-lg border border-border-subtle bg-surface-raised px-3 py-1.5 text-sm hover:bg-surface-hover"
             >
-              Open contacts
+              {t.dialogs.openContacts}
             </Link>
           }
         />
       ) : visible.length === 0 ? (
-        <EmptyState title="No matches" hint="Nothing here is named like that. Try fewer letters." />
+        <EmptyState title={t.dialogs.noMatchesTitle} hint={t.dialogs.noMatchesHint} />
       ) : (
         <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-2">
           {visible.map((dialog) => (

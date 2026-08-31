@@ -15,6 +15,7 @@ import { currentUserId } from '@/stores/authStore'
 import type { GroupCallResponse } from '@/lib/api/types'
 import type { CallMedia, CallSignalPayload, GroupCallParticipantWire } from '@/lib/protocol/types'
 import { silenceRinging } from './ringing'
+import { translate } from '@/lib/i18n'
 
 type SignalOf<V extends string> = Extract<CallSignalPayload['signal'], { verb: V }>
 
@@ -50,7 +51,7 @@ export async function startGroupCall(inviteeIds: string[], media: CallMedia): Pr
   } catch (error) {
     // Teardown first: `reset()` clears `error`, so setting it before would erase the message.
     teardownGroup()
-    store.setError(friendlyError(error, 'Could not start the call.'))
+    store.setError(friendlyError(error, translate().calls.couldNotStart))
   } finally {
     settingUp = false
   }
@@ -71,7 +72,7 @@ export async function joinIncomingGroupCall(): Promise<void> {
   } catch (error) {
     // Busy is decided at join, not at invite: a 409 here means this user is on another call.
     teardownGroup()
-    store.setError(friendlyError(error, 'Could not join the call.'))
+    store.setError(friendlyError(error, translate().calls.couldNotJoin))
   } finally {
     settingUp = false
   }
@@ -159,7 +160,7 @@ export function handleGroupSignal(payload: CallSignalPayload): void {
 export function failGroupCall(callId: string): void {
   if (activeGroupCallId() !== callId) return
   teardownGroup()
-  useCallStore.getState().setError('That call is no longer available.')
+  useCallStore.getState().setError(translate().calls.callGone)
 }
 
 export function activeGroupCallId(): string | null {
@@ -173,7 +174,7 @@ async function enterRoom(call: GroupCallResponse, media: CallMedia): Promise<voi
   // `livekit` is present only where you are admitted to the room: create and join.
   if (!call.livekit) {
     teardownGroup()
-    store.setError('The call did not admit this device.')
+    store.setError(translate().calls.notAdmitted)
     return
   }
 

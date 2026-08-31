@@ -4,43 +4,50 @@
  * The server's `errorMessage` array is never rendered raw (docs/UI.md §4) — it is developer text,
  * it sometimes ships alongside a `stackTrace`, and matching on it is forbidden anyway. Map the
  * status, which is the only part of the error shape that is a contract.
+ *
+ * These read the current language at call time. A component that renders one re-renders on a
+ * language change (it holds the error and also calls `useT()`), so the text follows the switch.
  */
 
 import { ApiError } from './client'
+import { translate } from '@/lib/i18n'
 
-export function friendlyError(error: unknown, fallback = 'Something went wrong. Try again.'): string {
+export function friendlyError(error: unknown, fallback?: string): string {
+  const t = translate()
+  const generic = fallback ?? t.errors.generic
   if (!(error instanceof ApiError)) {
-    return navigator.onLine ? fallback : 'You appear to be offline.'
+    return navigator.onLine ? generic : t.errors.offline
   }
   switch (error.status) {
     case 400:
-      return 'That request was not valid.'
+      return t.errors.badRequest
     case 401:
-      return 'Your session has expired. Sign in again.'
+      return t.errors.sessionExpired
     case 403:
-      return 'You do not have access to do that.'
+      return t.errors.forbidden
     case 404:
-      return 'That is no longer available.'
+      return t.errors.gone
     case 409:
-      return 'That conflicts with something that already exists.'
+      return t.errors.conflict
     case 413:
-      return 'That file is too large.'
+      return t.errors.fileTooLarge
     case 415:
-      return 'That file type is not supported.'
+      return t.errors.unsupportedFileType
     case 422:
-      return 'That action is not allowed here.'
+      return t.errors.notAllowed
     case 429:
-      return 'Too many requests. Wait a moment.'
+      return t.errors.tooManyRequests
     default:
-      return error.status >= 500 ? 'The server is having trouble. Try again shortly.' : fallback
+      return error.status >= 500 ? t.errors.serverTrouble : generic
   }
 }
 
 /** Sign-in and registration deserve their own wording — a 401 there is bad credentials, not expiry. */
 export function friendlyAuthError(error: unknown): string {
+  const t = translate()
   if (error instanceof ApiError) {
-    if (error.status === 401 || error.status === 400) return 'Those credentials were not accepted.'
-    if (error.status === 409) return 'An account with that email already exists.'
+    if (error.status === 401 || error.status === 400) return t.errors.badCredentials
+    if (error.status === 409) return t.errors.emailTaken
   }
-  return friendlyError(error, 'Could not sign you in. Try again.')
+  return friendlyError(error, t.errors.signInFailed)
 }

@@ -11,6 +11,7 @@
 
 import type { QueryClient } from '@tanstack/react-query'
 import { payloadOf } from '@/lib/protocol/codec'
+import { translate } from '@/lib/i18n'
 import { RETRYABLE_ERROR_CODES } from '@/lib/protocol/types'
 import type {
   AckPayload,
@@ -113,7 +114,7 @@ function handleSessionConnected(payload: SessionConnectedPayload, ctx: DispatchC
   // rather than merging two accounts' state.
   const expected = currentUserId()
   if (expected && payload.user_id !== expected) {
-    emitRelayEvent('notice', { message: 'This session belongs to a different account. Sign in again.' })
+    emitRelayEvent('notice', { message: translate().realtime.wrongAccount })
     signOut()
     return
   }
@@ -256,7 +257,7 @@ function handleDialogDeleted(payload: DialogDeletedPayload, ctx: DispatchContext
 function handleError(payload: ErrorPayload): void {
   if (!payload.ref_id) {
     // Raised before the envelope id could be read. It cannot be attributed to any one message.
-    emitRelayEvent('notice', { message: 'The server rejected a request.' })
+    emitRelayEvent('notice', { message: translate().realtime.serverRejected })
     return
   }
 

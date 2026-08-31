@@ -6,9 +6,11 @@ import { useCountdown } from '@/hooks/useCountdown'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
+import { useT } from '@/lib/i18n'
 
 /** Ringing UI for both mechanisms. A group invite carries no SDP — there is nothing to negotiate. */
 export function IncomingCallToast() {
+  const t = useT()
   const call = useCallStore((s) => s.call)
   const isDirect = call.kind === 'incoming'
   const isGroup = call.kind === 'group-ringing'
@@ -21,7 +23,7 @@ export function IncomingCallToast() {
   return (
     <div
       role="dialog"
-      aria-label="Incoming call"
+      aria-label={t.calls.incomingCall}
       className="fixed inset-x-4 top-4 z-50 space-y-3 rounded-xl border border-border-subtle bg-surface-raised
         p-4 shadow-xl sm:left-auto sm:w-80"
     >
@@ -33,9 +35,9 @@ export function IncomingCallToast() {
           size="md"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{caller.data ? displayName(caller.data) : 'Incoming call'}</p>
+          <p className="truncate text-sm font-medium">{caller.data ? displayName(caller.data) : t.calls.incomingCall}</p>
           <p className="text-xs text-fg-muted">
-            {isGroup ? 'Group call' : call.media === 'video' ? 'Video call' : 'Voice call'}
+            {isGroup ? t.calls.groupCall : call.media === 'video' ? t.calls.videoCall : t.calls.voiceCall}
             {secondsLeft !== null ? ` · ${secondsLeft}s` : ''}
           </p>
         </div>
@@ -46,8 +48,8 @@ export function IncomingCallToast() {
             inside this handler rather than a later effect. */}
         <Button
           className="flex-1"
-          aria-label="Answer"
-          title="Answer"
+          aria-label={t.calls.answer}
+          title={t.calls.answer}
           onClick={() => void (isGroup ? joinIncomingGroupCall() : acceptIncomingCall())}
         >
           <Icon name="phone" />
@@ -55,8 +57,8 @@ export function IncomingCallToast() {
         <Button
           variant="danger"
           className="flex-1"
-          aria-label="Decline"
-          title="Decline"
+          aria-label={t.calls.decline}
+          title={t.calls.decline}
           onClick={() => (isGroup ? void declineIncomingGroupCall() : rejectIncomingCall('declined'))}
         >
           <Icon name="phone-off" />

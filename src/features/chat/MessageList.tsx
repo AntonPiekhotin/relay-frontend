@@ -7,6 +7,7 @@ import { Spinner } from '@/components/Spinner'
 import { EmptyState } from '@/components/EmptyState'
 import { MessageRow } from './MessageRow'
 import { SystemMessageRow } from './SystemMessageRow'
+import { useT } from '@/lib/i18n'
 
 export interface MessageListProps {
   messages: ChatMessage[]
@@ -44,6 +45,7 @@ export function MessageList({
   onDiscard,
   onNewestVisible,
 }: MessageListProps) {
+  const t = useT()
   const scroller = useRef<HTMLDivElement | null>(null)
   const bottomSentinel = useRef<HTMLDivElement | null>(null)
   const stickToBottom = useRef(true)
@@ -119,7 +121,7 @@ export function MessageList({
   if (messages.length === 0 && !isLoadingMore) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <EmptyState title="No messages yet" hint="Say something to get started." />
+        <EmptyState title={t.chat.emptyTitle} hint={t.chat.emptyHint} />
       </div>
     )
   }

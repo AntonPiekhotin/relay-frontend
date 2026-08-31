@@ -30,8 +30,10 @@ import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
 import { PresenceLine } from './PresenceLine'
 import { TypingRow } from './TypingRow'
+import { useT } from '@/lib/i18n'
 
 export function ChatPane() {
+  const t = useT()
   const { dialogId } = useParams<{ dialogId: string }>()
   const myId = useAuthStore((s) => s.userId) ?? ''
   const dialog = useDialog(dialogId)
@@ -94,9 +96,9 @@ export function ChatPane() {
     (message: ChatMessage) => {
       if (!isGroup || message.messageId === null || message.messageId !== lastMineId) return null
       const count = seenByCount(readEntries, message, myId)
-      return count > 0 ? `Seen by ${count}` : null
+      return count > 0 ? t.chat.seenBy(count) : null
     },
-    [isGroup, lastMineId, readEntries, myId],
+    [isGroup, lastMineId, readEntries, myId, t],
   )
 
   /**
@@ -136,7 +138,7 @@ export function ChatPane() {
     return (
       <ErrorState
         error={dialog.error}
-        what="This conversation is no longer available."
+        what={t.chat.gone}
         onRetry={() => void dialog.refetch()}
       />
     )
@@ -161,7 +163,7 @@ export function ChatPane() {
             className="shrink-0 whitespace-nowrap text-sm text-accent hover:underline"
           >
             {dialog.data?.participantIds.length}
-            <span className="hidden sm:inline"> members</span>
+            <span className="hidden sm:inline"> {t.dialogs.membersWord(dialog.data?.participantIds.length ?? 0)}</span>
           </Link>
         ) : null}
 
@@ -169,8 +171,8 @@ export function ChatPane() {
           variant="ghost"
           size="icon-sm"
           className="shrink-0"
-          aria-label="Start a voice call"
-          title="Start a voice call"
+          aria-label={t.chat.startVoiceCall}
+          title={t.chat.startVoiceCall}
           disabled={!canCall}
           onClick={() => void startCall('audio')}
         >
@@ -180,8 +182,8 @@ export function ChatPane() {
           variant="ghost"
           size="icon-sm"
           className="shrink-0"
-          aria-label="Start a video call"
-          title="Start a video call"
+          aria-label={t.chat.startVideoCall}
+          title={t.chat.startVideoCall}
           disabled={!canCall}
           onClick={() => void startCall('video')}
         >
@@ -194,7 +196,7 @@ export function ChatPane() {
           <SkeletonRows count={4} />
         </div>
       ) : history.isError ? (
-        <ErrorState error={history.error} what="Could not load messages." onRetry={() => void history.refetch()} />
+        <ErrorState error={history.error} what={t.chat.couldNotLoadMessages} onRetry={() => void history.refetch()} />
       ) : (
         <MessageList
           key={dialogId}
@@ -215,7 +217,7 @@ export function ChatPane() {
 
       {queueFull ? (
         <p role="alert" className="px-4 pb-1 text-xs text-danger">
-          Too many messages are waiting to send here. Wait for the connection to come back.
+          {t.chat.queueFull}
         </p>
       ) : null}
 

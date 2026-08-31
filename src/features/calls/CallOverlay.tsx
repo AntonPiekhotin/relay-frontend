@@ -14,6 +14,7 @@ import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Icon } from '@/components/Icon'
 import { GroupCallRoom } from './GroupCallRoom'
+import { useT } from '@/lib/i18n'
 
 /** How long an ended-call notice stays up before it clears itself. */
 const NOTICE_MS = 6000
@@ -28,6 +29,7 @@ type DirectCall = Extract<CallState, { kind: 'outgoing' | 'connected' }>
  * (docs/UI.md §8 sanctions the literal here, as it does `bg-black` behind a video).
  */
 export function CallOverlay() {
+  const t = useT()
   const call = useCallStore((s) => s.call)
   const micEnabled = useCallStore((s) => s.micEnabled)
   const cameraEnabled = useCallStore((s) => s.cameraEnabled)
@@ -39,7 +41,7 @@ export function CallOverlay() {
   const media = call.media
 
   return (
-    <div role="dialog" aria-label="Call" className="fixed inset-0 z-40 flex flex-col bg-black/95">
+    <div role="dialog" aria-label={t.calls.call} className="fixed inset-0 z-40 flex flex-col bg-black/95">
       {isGroup ? (
         <>
           <GroupHeader roster={call.roster} />
@@ -57,8 +59,8 @@ export function CallOverlay() {
           variant="secondary"
           size="icon"
           onClick={() => void (isGroup ? setGroupMicEnabled(!micEnabled) : setMicEnabled(!micEnabled))}
-          aria-label={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
-          title={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
+          aria-label={micEnabled ? t.calls.muteMic : t.calls.unmuteMic}
+          title={micEnabled ? t.calls.muteMic : t.calls.unmuteMic}
         >
           <Icon name={micEnabled ? 'mic' : 'mic-off'} />
         </Button>
@@ -67,8 +69,8 @@ export function CallOverlay() {
             variant="secondary"
             size="icon"
             onClick={() => void (isGroup ? setGroupCameraEnabled(!cameraEnabled) : setCameraEnabled(!cameraEnabled))}
-            aria-label={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
-            title={cameraEnabled ? 'Turn camera off' : 'Turn camera on'}
+            aria-label={cameraEnabled ? t.calls.cameraOff : t.calls.cameraOn}
+            title={cameraEnabled ? t.calls.cameraOff : t.calls.cameraOn}
           >
             <Icon name={cameraEnabled ? 'video' : 'video-off'} />
           </Button>
@@ -77,8 +79,8 @@ export function CallOverlay() {
           variant="danger"
           size="icon"
           onClick={() => (isGroup ? void leaveCurrentGroupCall() : hangUpDirectCall('hangup'))}
-          aria-label={isGroup ? 'Leave the call' : 'Hang up'}
-          title={isGroup ? 'Leave the call' : 'Hang up'}
+          aria-label={isGroup ? t.calls.leaveCall : t.calls.hangUp}
+          title={isGroup ? t.calls.leaveCall : t.calls.hangUp}
         >
           <Icon name="phone-off" />
         </Button>
@@ -93,6 +95,7 @@ export function CallOverlay() {
  * It clears itself, because a notice about a call that is over should not need dismissing.
  */
 function CallNotice() {
+  const t = useT()
   const error = useCallStore((s) => s.error)
   const setError = useCallStore((s) => s.setError)
 
@@ -115,8 +118,8 @@ function CallNotice() {
         variant="ghost"
         size="icon-sm"
         className="-mr-2 shrink-0"
-        aria-label="Dismiss"
-        title="Dismiss"
+        aria-label={t.common.dismiss}
+        title={t.common.dismiss}
         onClick={() => setError(null)}
       >
         <Icon name="close" className="size-4" />
@@ -126,8 +129,9 @@ function CallNotice() {
 }
 
 function GroupHeader({ roster }: { roster: Extract<CallState, { kind: 'group' }>['roster'] }) {
+  const t = useT()
   const joined = roster.filter((p) => p.state === 'joined').length
-  return <p className="p-4 text-center text-sm text-white/70">Group call · {joined} joined</p>
+  return <p className="p-4 text-center text-sm text-white/70">{t.calls.groupJoined(joined)}</p>
 }
 
 /**
@@ -137,6 +141,7 @@ function GroupHeader({ roster }: { roster: Extract<CallState, { kind: 'group' }>
  * drawn over the top of it rather than in place of it.
  */
 function DirectStage({ call }: { call: DirectCall }) {
+  const t = useT()
   const mediaVersion = useCallStore((s) => s.mediaVersion)
   const localVideo = useRef<HTMLVideoElement | null>(null)
   const remoteVideo = useRef<HTMLVideoElement | null>(null)
@@ -170,7 +175,7 @@ function DirectStage({ call }: { call: DirectCall }) {
           autoPlay
           playsInline
           muted
-          aria-label="Your camera"
+          aria-label={t.calls.yourCamera}
           className="absolute bottom-4 right-4 w-28 rounded-lg border border-white/20 object-cover sm:w-40"
         />
       ) : null}
@@ -195,6 +200,7 @@ function FloatingLabel({ call }: { call: DirectCall }) {
  * device, and a counter proving the app has not simply frozen.
  */
 function PeerPanel({ call }: { call: DirectCall }) {
+  const t = useT()
   const peer = useUser(call.peerId)
   const outgoing = call.kind === 'outgoing'
   // Only a connected call has a duration. Ring time is not call time — a counter that starts when
@@ -204,11 +210,11 @@ function PeerPanel({ call }: { call: DirectCall }) {
 
   const status = outgoing
     ? call.status === 'ringing'
-      ? 'Ringing…'
-      : 'Connecting…'
+      ? t.calls.ringing
+      : t.calls.connecting
     : call.media === 'video'
-      ? 'Waiting for their video…'
-      : 'Connected'
+      ? t.calls.waitingForVideo
+      : t.calls.connected
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
@@ -246,7 +252,7 @@ function PeerPanel({ call }: { call: DirectCall }) {
           {status}
           {elapsed !== null ? ` · ${formatDuration(elapsed)}` : ''}
         </p>
-        <p className="text-xs text-white/50">{call.media === 'video' ? 'Video call' : 'Voice call'}</p>
+        <p className="text-xs text-white/50">{call.media === 'video' ? t.calls.videoCall : t.calls.voiceCall}</p>
       </div>
     </div>
   )

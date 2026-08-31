@@ -8,9 +8,11 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useT } from '@/lib/i18n'
 
 /** There is no "confirm password" field on the wire — it is a form concern we own. */
 export function RegisterPage() {
+  const t = useT()
   const navigate = useNavigate()
   const setSession = useAuthStore((s) => s.setSession)
   const signedIn = useAuthStore((s) => Boolean(s.accessToken))
@@ -51,8 +53,8 @@ export function RegisterPage() {
       >
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">Create your account</h1>
-            <p className="text-sm text-fg-muted">You will be signed in straight away.</p>
+            <h1 className="text-2xl font-semibold">{t.auth.registerTitle}</h1>
+            <p className="text-sm text-fg-muted">{t.auth.registerSubtitle}</p>
           </div>
           {/* The theme is a device preference, so it has to be reachable before there is an account. */}
           <ThemeToggle className="-mr-2" />
@@ -60,14 +62,14 @@ export function RegisterPage() {
 
         <div className="flex gap-3">
           <Input
-            label="First name"
+            label={t.auth.firstName}
             autoComplete="given-name"
             required
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
           <Input
-            label="Last name"
+            label={t.auth.lastName}
             autoComplete="family-name"
             required
             value={lastName}
@@ -75,7 +77,7 @@ export function RegisterPage() {
           />
         </div>
         <Input
-          label="Email"
+          label={t.auth.email}
           type="email"
           autoComplete="email"
           required
@@ -83,7 +85,7 @@ export function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Password"
+          label={t.auth.password}
           type="password"
           autoComplete="new-password"
           required
@@ -92,7 +94,7 @@ export function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <Input
-          label="Confirm password"
+          label={t.auth.confirmPassword}
           type="password"
           autoComplete="new-password"
           required
@@ -103,7 +105,7 @@ export function RegisterPage() {
 
         {mismatch ? (
           <p role="alert" className="text-sm text-danger">
-            Those passwords do not match.
+            {t.auth.passwordsMismatch}
           </p>
         ) : null}
         {mutation.isError ? (
@@ -114,13 +116,13 @@ export function RegisterPage() {
 
         <Button type="submit" className="w-full" disabled={mutation.isPending || mismatch}>
           {mutation.isPending ? <Spinner /> : null}
-          Create account
+          {t.auth.createAccount}
         </Button>
 
         <p className="text-center text-sm text-fg-muted">
-          Already have an account?{' '}
+          {t.auth.haveAccount}{' '}
           <Link to="/login" className="text-accent hover:underline">
-            Sign in
+            {t.auth.signIn}
           </Link>
         </p>
       </form>

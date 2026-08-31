@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { typistsIn, useTypingStore } from '@/stores/typingStore'
 import { displayName, useUser } from '@/queries/useUser'
+import { useT } from '@/lib/i18n'
 
 export interface TypingRowProps {
   dialogId: string
@@ -11,6 +12,7 @@ export interface TypingRowProps {
  * line every time somebody starts and stops (docs/UI.md §2).
  */
 export function TypingRow({ dialogId }: TypingRowProps) {
+  const t = useT()
   // Select narrowly: subscribing to the whole store re-renders the pane on every unrelated frame.
   const byDialog = useTypingStore((s) => s.byDialog)
   const sweep = useTypingStore((s) => s.sweep)
@@ -29,7 +31,7 @@ export function TypingRow({ dialogId }: TypingRowProps) {
       {typists.length === 1 && typists[0] ? (
         <SingleTypist userId={typists[0]} />
       ) : typists.length > 1 ? (
-        `${typists.length} people are typing…`
+        t.chat.typingMany(typists.length)
       ) : (
         ''
       )}
@@ -38,6 +40,7 @@ export function TypingRow({ dialogId }: TypingRowProps) {
 }
 
 function SingleTypist({ userId }: { userId: string }) {
+  const t = useT()
   const user = useUser(userId)
-  return <>{user.data ? `${displayName(user.data)} is typing…` : 'Typing…'}</>
+  return <>{user.data ? t.chat.typingOne(displayName(user.data)) : t.chat.typing}</>
 }

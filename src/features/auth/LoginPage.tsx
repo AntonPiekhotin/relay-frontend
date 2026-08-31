@@ -8,8 +8,10 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Spinner } from '@/components/Spinner'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useT } from '@/lib/i18n'
 
 export function LoginPage() {
+  const t = useT()
   const navigate = useNavigate()
   const setSession = useAuthStore((s) => s.setSession)
   const signedIn = useAuthStore((s) => Boolean(s.accessToken))
@@ -38,14 +40,14 @@ export function LoginPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold">Relay</h1>
-            <p className="text-sm text-fg-muted">Sign in to your account.</p>
+            <p className="text-sm text-fg-muted">{t.auth.signInSubtitle}</p>
           </div>
           {/* The theme is a device preference, so it has to be reachable before there is an account. */}
           <ThemeToggle className="-mr-2" />
         </div>
 
         <Input
-          label="Email"
+          label={t.auth.email}
           type="email"
           autoComplete="email"
           required
@@ -53,7 +55,7 @@ export function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Password"
+          label={t.auth.password}
           type="password"
           autoComplete="current-password"
           required
@@ -69,13 +71,13 @@ export function LoginPage() {
 
         <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? <Spinner /> : null}
-          Sign in
+          {t.auth.signIn}
         </Button>
 
         <p className="text-center text-sm text-fg-muted">
-          No account?{' '}
+          {t.auth.noAccount}{' '}
           <Link to="/register" className="text-accent hover:underline">
-            Create one
+            {t.auth.createOne}
           </Link>
         </p>
       </form>

@@ -1,11 +1,13 @@
 import { useOutboxStore } from '@/stores/outboxStore'
 import { useSocketStore } from '@/stores/socketStore'
+import { useT } from '@/lib/i18n'
 
 /**
  * Not optional. With no REST fallback send, a disconnected client's messages sit in the outbox
  * indefinitely — and a UI that looks normal while that happens is lying to the user (docs/UI.md §4).
  */
 export function ConnectionBanner() {
+  const t = useT()
   const status = useSocketStore((s) => s.status)
   const queued = useOutboxStore((s) => Object.keys(s.entries).length)
 
@@ -13,10 +15,10 @@ export function ConnectionBanner() {
 
   const text =
     status === 'unauthorized'
-      ? 'Your session ended. Sign in again to keep chatting.'
+      ? t.banner.sessionEnded
       : status === 'connecting' || status === 'authenticating'
-        ? 'Connecting…'
-        : 'Offline. Messages you write will send when the connection returns.'
+        ? t.banner.connecting
+        : t.banner.offline
 
   return (
     <div
@@ -26,7 +28,7 @@ export function ConnectionBanner() {
       }`}
     >
       {text}
-      {queued > 0 ? ` ${queued} message${queued === 1 ? '' : 's'} waiting.` : ''}
+      {queued > 0 ? ` ${t.banner.queued(queued)}` : ''}
     </div>
   )
 }

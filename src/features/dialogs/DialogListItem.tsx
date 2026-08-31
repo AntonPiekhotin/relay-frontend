@@ -3,12 +3,14 @@ import { Avatar } from '@/components/Avatar'
 import { formatDialogTime } from '@/lib/time'
 import type { DialogSummary } from '@/lib/api/types'
 import { useDialogDisplay } from './useDialogDisplay'
+import { useT } from '@/lib/i18n'
 
 export interface DialogListItemProps {
   dialog: DialogSummary
 }
 
 export function DialogListItem({ dialog }: DialogListItemProps) {
+  const t = useT()
   const display = useDialogDisplay(dialog)
 
   return (
@@ -34,11 +36,11 @@ export function DialogListItem({ dialog }: DialogListItemProps) {
           </span>
           <span className="mt-0.5 flex items-center gap-2">
             <span className="min-w-0 flex-1 truncate text-xs text-fg-subtle">
-              {dialog.type === 'group' ? `${dialog.participantIds.length} members` : ''}
+              {dialog.type === 'group' ? t.dialogs.members(dialog.participantIds.length) : ''}
             </span>
             {dialog.unreadCount > 0 ? (
               <span
-                aria-label={`${dialog.unreadCount} unread`}
+                aria-label={t.dialogs.unread(dialog.unreadCount)}
                 className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-white"
               >
                 {dialog.unreadCount > 99 ? '99+' : dialog.unreadCount}

@@ -27,6 +27,7 @@ import { acquireLocalMedia, mediaErrorMessage, stopStream } from './media'
 // Only the one-shot chimes, which are events rather than states, are played explicitly.
 import { playConnected, playEnded } from './tones'
 import { silenceRinging } from './ringing'
+import { translate } from '@/lib/i18n'
 
 /**
  * `CallSignal` ends in an open `{ verb: string; [key: string]: unknown }` member so an unknown verb
@@ -92,7 +93,7 @@ export async function startDirectCall(peerId: string, media: CallMedia, dialogId
     }
 
     if (!sendCallFrame<CallInvitePayload>('call.invite', payload, callId)) {
-      endCall('Could not reach the server.')
+      endCall(translate().calls.couldNotReachServer)
       return
     }
 
@@ -105,7 +106,7 @@ export async function startDirectCall(peerId: string, media: CallMedia, dialogId
     store.setCamera(media === 'video')
     store.bumpMedia()
   } catch {
-    endCall('Could not start the call.')
+    endCall(translate().calls.couldNotStart)
   } finally {
     settingUp = false
   }
@@ -150,7 +151,7 @@ export async function acceptIncomingCall(): Promise<void> {
         call.callId,
       )
     ) {
-      endCall('Could not reach the server.')
+      endCall(translate().calls.couldNotReachServer)
       return
     }
 
@@ -165,7 +166,7 @@ export async function acceptIncomingCall(): Promise<void> {
     store.setCamera(call.media === 'video')
     store.bumpMedia()
   } catch {
-    endCall('Could not answer the call.')
+    endCall(translate().calls.couldNotAnswer)
   } finally {
     settingUp = false
   }
@@ -213,7 +214,7 @@ export async function handleDirectSignal(payload: CallSignalPayload): Promise<vo
   } catch {
     // A rejected SDP or candidate leaves the negotiation half-finished, and nothing about a call
     // is retryable — so tear it down rather than ringing forever with live media.
-    if (activeDirectCallId() === payload.call_id) endCall('The call could not be set up.')
+    if (activeDirectCallId() === payload.call_id) endCall(translate().calls.setupFailed)
   }
 }
 
@@ -284,17 +285,17 @@ async function routeDirectSignal(payload: CallSignalPayload): Promise<void> {
      * from a bug in us.
      */
     case 'reject':
-      if (activeDirectCallId() === payload.call_id) endCall('Call declined.')
+      if (activeDirectCallId() === payload.call_id) endCall(translate().calls.declined)
       return
 
     case 'hangup':
       if (activeDirectCallId() === payload.call_id) {
-        endCall(call.kind === 'connected' ? 'Call ended.' : 'They hung up.')
+        endCall(call.kind === 'connected' ? translate().calls.ended : translate().calls.theyHungUp)
       }
       return
 
     case 'missed':
-      if (activeDirectCallId() === payload.call_id) endCall('No answer.')
+      if (activeDirectCallId() === payload.call_id) endCall(translate().calls.noAnswer)
       return
 
     /**
@@ -321,16 +322,17 @@ export function failDirectCall(callId: string, code: string): void {
 }
 
 function directCallErrorMessage(code: string): string {
+  const t = translate()
   switch (code) {
     case 'USER_BUSY':
-      return 'They are already on another call.'
+      return t.calls.userBusy
     case 'CALL_NOT_FOUND':
     case 'INVALID_CALL_STATE':
-      return 'That call is no longer available.'
+      return t.calls.callGone
     case 'NOT_A_PARTICIPANT':
-      return 'You are not part of that call.'
+      return t.calls.notAParticipant
     default:
-      return 'The call could not be connected.'
+      return t.calls.notConnected
   }
 }
 
@@ -363,7 +365,7 @@ async function createPeerConnection(callId: string): Promise<void> {
   }
 
   connection.onconnectionstatechange = () => {
-    if (connection.connectionState === 'failed') endCall('The connection dropped.')
+    if (connection.connectionState === 'failed') endCall(translate().calls.connectionDropped)
   }
 }
 

@@ -10,11 +10,13 @@ import {Input} from '@/components/Input'
 import {Spinner} from '@/components/Spinner'
 import {MemberPicker} from './MemberPicker'
 import type {PublicUser} from '@/lib/api/types'
+import {useT} from '@/lib/i18n'
 
 /** Cap 50 INCLUDING the caller, so 49 others is the ceiling. Minimum one other member. */
 const MAX_MEMBERS_INCLUDING_ME = 50
 
 export function GroupCreatePage() {
+    const t = useT()
     const navigate = useNavigate()
     const qc = useQueryClient()
     const [title, setTitle] = useState('')
@@ -44,14 +46,14 @@ export function GroupCreatePage() {
 
     return (
         <div className="mx-auto w-full max-w-lg space-y-6 overflow-y-auto p-4 sm:p-6">
-            <h1 className="text-lg font-semibold">New group</h1>
+            <h1 className="text-lg font-semibold">{t.groups.newGroup}</h1>
 
-            <Input label="Group name" value={title} onChange={(e) => setTitle(e.target.value)} required/>
+            <Input label={t.groups.name} value={title} onChange={(e) => setTitle(e.target.value)} required/>
 
             <MemberPicker selected={members} onChange={setMembers} remainingSlots={remainingSlots}/>
 
             <p className="text-xs text-fg-subtle">
-                {members.length + 1} of {MAX_MEMBERS_INCLUDING_ME} members.
+                {t.groups.memberTally(members.length + 1, MAX_MEMBERS_INCLUDING_ME)}
             </p>
 
             {create.isError ? <p className="text-sm text-danger">{friendlyError(create.error)}</p> : null}
@@ -59,10 +61,10 @@ export function GroupCreatePage() {
             <div className="flex gap-2">
                 <Button disabled={!canCreate || create.isPending} onClick={() => create.mutate()}>
                     {create.isPending ? <Spinner/> : null}
-                    Create group
+                    {t.groups.create}
                 </Button>
                 <Button variant="ghost" onClick={() => navigate(-1)}>
-                    Cancel
+                    {t.common.cancel}
                 </Button>
             </div>
         </div>

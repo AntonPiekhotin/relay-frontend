@@ -114,7 +114,7 @@ onChange={() => send('typing.start', { dialog_id })}    // throttle to 1 per 3s
 | Sending, the outbox, optimistic UI, history merge, read state | `docs/MESSAGING.md` |
 | Socket lifecycle, reconnect, catch-up, presence, typing | `docs/REALTIME.md` |
 | Direct calls (WebRTC/TURN), group calls (LiveKit) | `docs/CALLS.md` |
-| Screens, components, Tailwind conventions, a11y | `docs/UI.md` |
+| Screens, components, Tailwind conventions, a11y, localization | `docs/UI.md` |
 | What to build next, in what order | `docs/ROADMAP.md` |
 | Running the backend locally | `docs/BACKEND-SETUP.md` |
 
