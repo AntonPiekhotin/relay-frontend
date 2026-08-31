@@ -195,6 +195,13 @@ export const en = {
     pictureUnsupported: 'That file type is not supported.',
     appearance: 'Appearance',
     account: 'Account',
+    changePassword: 'Change password',
+    currentPassword: 'Current password',
+    newPassword: 'New password',
+    passwordChanged: 'Your password has been changed.',
+    currentPasswordWrong: 'Your current password was not accepted.',
+    newPasswordRejected:
+      'That password was not accepted. Use 8+ characters with upper and lower case letters, a digit and a special character — and not your current password.',
     signOut: 'Sign out',
     signOutTitle: 'Sign out?',
     signOutBody: 'Are you sure you want to sign out?',

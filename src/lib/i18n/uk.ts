@@ -202,6 +202,13 @@ export const uk: Messages = {
     pictureUnsupported: 'Цей тип файлу не підтримується.',
     appearance: 'Вигляд',
     account: 'Обліковий запис',
+    changePassword: 'Змінити пароль',
+    currentPassword: 'Поточний пароль',
+    newPassword: 'Новий пароль',
+    passwordChanged: 'Ваш пароль змінено.',
+    currentPasswordWrong: 'Поточний пароль не прийнято.',
+    newPasswordRejected:
+      'Цей пароль не прийнято. Використайте щонайменше 8 символів з великими та малими літерами, цифрою і спеціальним символом — і не поточний пароль.',
     signOut: 'Вийти',
     signOutTitle: 'Вийти?',
     signOutBody: 'Ви впевнені, що хочете вийти?',

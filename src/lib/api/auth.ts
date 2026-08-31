@@ -5,7 +5,7 @@
  * routing them through the 401-refresh path would recurse.
  */
 
-import { api, request } from './client'
+import { apiRaw, request } from './client'
 import type {
   ChangePasswordRequest,
   LoginRequest,
@@ -33,7 +33,11 @@ export function logout(refreshToken: string): Promise<void> {
 /**
  * Requires `currentPassword` even though the caller holds a valid token, and answers 204: existing
  * tokens stay valid, so there is nothing to hand back.
+ *
+ * A wrong `currentPassword` is a 401 — the one authenticated call where 401 is a verdict, not an
+ * expired token. Through `api` that verdict would refresh, retry the same wrong password, and sign
+ * the user out over a typo; `apiRaw` refreshes once and then hands the 401 back to the form.
  */
-export function changePassword(body: ChangePasswordRequest): Promise<void> {
-  return api<void>('/auth/password', { method: 'POST', body })
+export async function changePassword(body: ChangePasswordRequest): Promise<void> {
+  await apiRaw('/auth/password', { method: 'POST', body })
 }

@@ -1,5 +1,7 @@
 import {useEffect, useRef, useState} from 'react'
 import {useMutation, useQueryClient} from '@tanstack/react-query'
+import {changePassword} from '@/lib/api/auth'
+import {ApiError} from '@/lib/api/client'
 import {deleteAvatar, updateMe, uploadAvatar} from '@/lib/api/users'
 import {friendlyError} from '@/lib/api/errors'
 import {qk} from '@/queries/keys'
@@ -28,6 +30,10 @@ export function ProfilePage() {
     const [lastName, setLastName] = useState('')
     const [fileError, setFileError] = useState<string | null>(null)
     const [confirmingSignOut, setConfirmingSignOut] = useState(false)
+    const [changingPassword, setChangingPassword] = useState(false)
+    const [currentPassword, setCurrentPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const edited = useRef(false)
     const filePicker = useRef<HTMLInputElement | null>(null)
 
@@ -59,6 +65,34 @@ export function ProfilePage() {
         mutationFn: () => deleteAvatar(),
         onSuccess: () => void qc.invalidateQueries({queryKey: qk.me}),
     })
+
+    const password = useMutation({
+        mutationFn: () => changePassword({currentPassword, newPassword}),
+        // 204, and existing tokens stay valid — nothing to store, nothing to refetch.
+        onSuccess: () => setChangingPassword(false),
+    })
+
+    /**
+     * The generic status map reads a 401 as an expired session and a 400 as a malformed request;
+     * on this endpoint they mean a wrong current password and a rejected new one.
+     */
+    function passwordError(error: unknown): string {
+        if (error instanceof ApiError) {
+            if (error.status === 401) return t.profile.currentPasswordWrong
+            if (error.status === 400) return t.profile.newPasswordRejected
+        }
+        return friendlyError(error)
+    }
+
+    function openPasswordModal() {
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+        password.reset()
+        setChangingPassword(true)
+    }
+
+    const passwordsMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword
 
     /**
      * Everything cached belongs to the account that is leaving: the object URLs point at its avatar
@@ -176,10 +210,85 @@ export function ProfilePage() {
 
             <section className="space-y-2 border-t border-border-subtle pt-6">
                 <h2 className="text-sm font-semibold">{t.profile.account}</h2>
-                <Button variant="danger" size="sm" onClick={() => setConfirmingSignOut(true)}>
-                    {t.profile.signOut}
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={openPasswordModal}>
+                        {t.profile.changePassword}
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => setConfirmingSignOut(true)}>
+                        {t.profile.signOut}
+                    </Button>
+                </div>
+                {password.isSuccess ? <p className="text-sm text-fg-muted">{t.profile.passwordChanged}</p> : null}
             </section>
+
+            <Modal
+                open={changingPassword}
+                title={t.profile.changePassword}
+                onClose={() => setChangingPassword(false)}
+                footer={
+                    <>
+                        <Button variant="secondary" size="sm" onClick={() => setChangingPassword(false)}>
+                            {t.common.cancel}
+                        </Button>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            form="change-password"
+                            disabled={password.isPending || passwordsMismatch}
+                        >
+                            {password.isPending ? <Spinner/> : null}
+                            {t.profile.changePassword}
+                        </Button>
+                    </>
+                }
+            >
+                <form
+                    id="change-password"
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        if (passwordsMismatch) return
+                        password.mutate()
+                    }}
+                >
+                    <Input
+                        label={t.profile.currentPassword}
+                        type="password"
+                        autoComplete="current-password"
+                        required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                    <Input
+                        label={t.profile.newPassword}
+                        type="password"
+                        autoComplete="new-password"
+                        required
+                        minLength={8}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <Input
+                        label={t.auth.confirmPassword}
+                        type="password"
+                        autoComplete="new-password"
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        aria-invalid={passwordsMismatch}
+                    />
+                    {passwordsMismatch ? (
+                        <p role="alert" className="text-sm text-danger">
+                            {t.auth.passwordsMismatch}
+                        </p>
+                    ) : null}
+                    {password.isError ? (
+                        <p role="alert" className="text-sm text-danger">
+                            {passwordError(password.error)}
+                        </p>
+                    ) : null}
+                </form>
+            </Modal>
 
             <Modal
                 open={confirmingSignOut}

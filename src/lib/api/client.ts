@@ -141,7 +141,11 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
   return parse<T>(res)
 }
 
-/** Authenticated fetch returning the raw `Response` — for avatar blobs. */
+/**
+ * Authenticated fetch returning the raw `Response` — for avatar blobs, and for the one endpoint
+ * where a post-refresh 401 is an answer rather than a dead session (`changePassword`): unlike
+ * `api`, a second 401 here is thrown to the caller, not turned into a logout.
+ */
 export async function apiRaw(path: string, opts: RequestOptions = {}): Promise<Response> {
   const send = (): Promise<Response> =>
     fetch(buildUrl(path, opts.query), buildInit(opts, auth?.getAccessToken() ?? null))
