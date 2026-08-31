@@ -154,8 +154,13 @@ function DirectStage({ call }: { call: DirectCall }) {
   const showLocalPreview = call.media === 'video'
 
   return (
-    <div className="relative flex-1">
-      <video ref={remoteVideo} autoPlay playsInline className="size-full bg-black object-contain" />
+    <div className="relative min-h-0 flex-1">
+      <video
+        ref={remoteVideo}
+        autoPlay
+        playsInline
+        className="absolute inset-0 size-full bg-black object-contain"
+      />
 
       {hasRemoteVideo ? <FloatingLabel call={call} /> : <PeerPanel call={call} />}
 

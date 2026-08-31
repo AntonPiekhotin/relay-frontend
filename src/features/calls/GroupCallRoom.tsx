@@ -13,7 +13,7 @@ export function GroupCallRoom() {
   const identities = room ? [...room.remoteParticipants.keys()] : []
 
   return (
-    <div className="grid flex-1 grid-cols-1 gap-2 p-2 sm:grid-cols-2">
+    <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-2 p-2 sm:grid-cols-2">
       {identities.length === 0 ? (
         <p className="flex items-center justify-center text-sm text-fg-subtle sm:col-span-2">
           Waiting for others to join…
@@ -65,7 +65,7 @@ function ParticipantTile({ identity, mediaVersion }: ParticipantTileProps) {
 
   return (
     <div className="relative overflow-hidden rounded-lg bg-black">
-      <video ref={video} autoPlay playsInline className="size-full object-cover" />
+      <video ref={video} autoPlay playsInline className="absolute inset-0 size-full object-cover" />
       <audio ref={audio} autoPlay />
       <p className="absolute bottom-1 left-2 text-xs text-white/80">
         {user.data ? displayName(user.data) : identity}
