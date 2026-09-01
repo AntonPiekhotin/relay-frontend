@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { login } from '@/lib/api/auth'
 import { friendlyAuthError } from '@/lib/api/errors'
@@ -15,8 +15,11 @@ export function LoginPage() {
   const navigate = useNavigate()
   const setSession = useAuthStore((s) => s.setSession)
   const signedIn = useAuthStore((s) => Boolean(s.accessToken))
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [params] = useSearchParams()
+  const linkEmail = params.get('email') ?? ''
+  const linkPassword = params.get('password') ?? ''
+  const [email, setEmail] = useState(linkEmail)
+  const [password, setPassword] = useState(linkPassword)
 
   const mutation = useMutation({
     mutationFn: () => login({ email: email.trim(), password }),
@@ -25,6 +28,13 @@ export function LoginPage() {
       navigate('/', { replace: true })
     },
   })
+
+  const autoSubmitted = useRef(false)
+  useEffect(() => {
+    if (autoSubmitted.current || signedIn || !linkEmail || !linkPassword) return
+    autoSubmitted.current = true
+    mutation.mutate()
+  }, [linkEmail, linkPassword, signedIn, mutation])
 
   if (signedIn) return <Navigate to="/" replace />
 
