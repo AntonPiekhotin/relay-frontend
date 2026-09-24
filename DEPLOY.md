@@ -18,7 +18,7 @@ push to main (relay-frontend)
   ├─ docker build (nginx + dist/, no Node stage)
   │    └─ push ghcr.io/<owner>/relay-web:<short-sha> + :latest   [linux/arm64, linux/amd64]
   │
-  └─ ssh <box> → /opt/relay → inline in the workflow
+  └─ ssh <box> → /opt/relay/deploy → inline in the workflow
                                 │
                                 ├─ flock .web-deploy.lock
                                 ├─ docker login ghcr.io with the run's GITHUB_TOKEN
@@ -29,7 +29,9 @@ push to main (relay-frontend)
 ```
 
 **There is no deploy script on the server.** The backend repo dropped `apply.sh`; its CI copies only
-`docker-compose.yml` and `nginx/` to `/opt/relay`, and the server owns `.env` and `secrets/`. So the
+`docker-compose.yml` and `nginx/` to the deploy directory, and the server owns `.env` and `secrets/`
+there. That directory is `/opt/relay/deploy` on the current box; the `DEPLOY_PATH` repository variable
+overrides the workflow's default when it moves. So the
 roll lives in this workflow's `deploy` step and does the same four things `apply.sh` did. The
 backend's compose file declares the `web` service under the `web` profile with
 `relay-web:${WEB_TAG}`, and naming the service on the command line enables the profile.

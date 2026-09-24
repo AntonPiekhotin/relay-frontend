@@ -82,7 +82,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           SSH_PORT:    ${{ vars.DEPLOY_SSH_PORT || '22' }}
-          RAW_PATH:    ${{ vars.DEPLOY_PATH || '/opt/relay' }}
+          RAW_PATH:    ${{ vars.DEPLOY_PATH || '/opt/relay/deploy' }}
           TAG:         ${{ steps.img.outputs.tag }}
           GHCR_USER:   ${{ github.actor }}
           GHCR_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
@@ -110,6 +110,8 @@ jobs:
             bash -s <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
+          # The server owns .env; CI never creates it. Say who is looking and what is there.
+          test -f .env || { echo "::error::$DEPLOY_PATH/.env is missing for $(id -un) on $(hostname)"; ls -la; exit 1; }
           exec 9>.web-deploy.lock; flock 9
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
           PREV="$(sed -n 's/^WEB_TAG=//p' .env)"
