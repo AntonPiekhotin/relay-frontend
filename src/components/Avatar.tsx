@@ -19,14 +19,12 @@ const SIZES = {
   xl: 'size-28 text-3xl',
 } as const
 
-/** Fixed hues so a name is always the same colour, and none of them fight the accent. */
-const HUES = [8, 45, 95, 150, 195, 265, 310, 340]
+const COLORS = ['#ab5064', '#aa5830', '#877000', '#33854a', '#008484', '#4f6eb7', '#875ca5', '#9f5387']
 
 function colorFor(seed: string): string {
   let hash = 0
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
-  const hue = HUES[hash % HUES.length] ?? 255
-  return `oklch(0.55 0.12 ${hue})`
+  return COLORS[hash % COLORS.length] ?? '#4f6eb7'
 }
 
 export function Avatar({ avatarUrl, userId, initials = '?', size = 'md', className = '' }: AvatarProps) {
