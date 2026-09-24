@@ -1,7 +1,19 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import browserslist from 'browserslist'
+import { browserslistToTargets } from 'lightningcss'
 import path from 'node:path'
+
+/**
+ * The oldest browser the CSS must render in. Chrome 109 is the last Chrome for Windows 7, and a
+ * real user is on it. Tailwind v4 writes every colour as `oklch()`, which Chrome learned in 111 —
+ * on 109 each `--relay-*` token is an invalid value, every `var(--relay-*)` resolves to nothing,
+ * and the app renders with no backgrounds, borders or text colour. Lightning CSS lowers the output
+ * for these targets: a hex fallback first, the exact `lab()` colour behind an `@supports` guard.
+ * `defaults` keeps the modern floor for everything else so nothing is lowered that need not be.
+ */
+const cssTargets = browserslistToTargets(browserslist('defaults, chrome >= 109'))
 
 /**
  * The proxy is not a convenience — it is the only reason a browser client works at all.
@@ -20,6 +32,13 @@ import path from 'node:path'
  */
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  css: {
+    transformer: 'lightningcss',
+    lightningcss: { targets: cssTargets },
+  },
+  build: {
+    cssMinify: 'lightningcss',
+  },
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },
   },
