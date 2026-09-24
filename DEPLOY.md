@@ -3,8 +3,8 @@
 At the repo root rather than under `docs/`, because `/docs/` is in `.gitignore` — nothing in that
 directory is tracked, so a deploy document there would exist only on one laptop.
 
-The backend's own deploy guide is `~/IdeaProjects/relay/deploy/README.md` and it is the source of
-truth for the server, the compose stack and `apply.sh`. This file covers the half that lives here.
+The backend's own deploy guide is `~/IdeaProjects/relay-mono/deploy/README.md` and it is the source
+of truth for the server and the compose stack. This file covers the half that lives here.
 
 ---
 
@@ -18,20 +18,26 @@ push to main (relay-frontend)
   ├─ docker build (nginx + dist/, no Node stage)
   │    └─ push ghcr.io/<owner>/relay-web:<short-sha> + :latest   [linux/arm64, linux/amd64]
   │
-  └─ ssh <box> → /opt/relay → deploy/apply.sh web <short-sha>
+  └─ ssh <box> → /opt/relay → inline in the workflow
                                 │
-                                ├─ flock deploy/.apply.lock
-                                ├─ WEB_TAG=<sha> in deploy/.env   (PREV remembered)
+                                ├─ flock .web-deploy.lock
+                                ├─ docker login ghcr.io with the run's GITHUB_TOKEN
+                                ├─ WEB_TAG=<sha> in .env   (PREV remembered)
                                 ├─ docker compose pull web
-                                ├─ docker compose up -d --no-deps web
-                                ├─ poll `docker inspect relay-web` for healthy, ≤300s
+                                ├─ docker compose up -d --no-deps --wait web   (image HEALTHCHECK)
                                 └─ not healthy? → WEB_TAG=<PREV>, re-roll, exit 1
 ```
 
-**The deploy script is the backend's, unmodified.** `apply.sh` was never service-specific: it
-uppercases the name it is handed into `WEB_TAG`, rewrites that one line in `deploy/.env`, and
-inspects a container called `relay-web`. So rollback, the health gate and the lock against
-concurrent deploys all come for free.
+**There is no deploy script on the server.** The backend repo dropped `apply.sh`; its CI copies only
+`docker-compose.yml` and `nginx/` to `/opt/relay`, and the server owns `.env` and `secrets/`. So the
+roll lives in this workflow's `deploy` step and does the same four things `apply.sh` did. The
+backend's compose file declares the `web` service under the `web` profile with
+`relay-web:${WEB_TAG}`, and naming the service on the command line enables the profile.
+
+**The SSH host key is pinned**, in the `DEPLOY_SSH_KNOWN_HOSTS` secret, and `known_hosts` entries
+are keyed by the name in `DEPLOY_HOST`. Change one and the other must follow:
+`ssh-keyscan -p 22 <DEPLOY_HOST>` produces the new contents. The SSH host has nothing to do with the
+name the site is served under; the server's IP is the stable choice.
 
 **Requests reach the SPA through two nginx hops.** The edge one terminates TLS and routes by path
 — `/api/v1/` and `/ws` to the app, `/realms/` to Keycloak, `/rtc` to LiveKit, **everything left

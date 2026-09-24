@@ -84,6 +84,8 @@ jobs:
           SSH_PORT:    ${{ vars.DEPLOY_SSH_PORT || '22' }}
           RAW_PATH:    ${{ vars.DEPLOY_PATH || '/opt/relay' }}
           TAG:         ${{ steps.img.outputs.tag }}
+          GHCR_USER:   ${{ github.actor }}
+          GHCR_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -99,8 +101,27 @@ jobs:
           # runner, and accepting any host key hands it to whatever answers on port 22.
           printf '%s\n' "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
-          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" bash -s <<REMOTE
+          # The roll happens inline: the backend repo no longer ships a deploy script, and its CI
+          # copies only docker-compose.yml and nginx/ to the server. WEB_TAG is rewritten in .env so
+          # the running tag is visible on the box; on a failed health wait the previous tag is put
+          # back and rolled, so a broken image never stays live.
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o BatchMode=yes "$SSH_TARGET" \
+            TAG="$TAG" GHCR_USER="$GHCR_USER" GHCR_TOKEN="$GHCR_TOKEN" DEPLOY_PATH="$DEPLOY_PATH" \
+            bash -s <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
-          deploy/apply.sh web "$TAG"
+          exec 9>.web-deploy.lock; flock 9
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null
+          PREV="$(sed -n 's/^WEB_TAG=//p' .env)"
+          set_tag() { grep -q '^WEB_TAG=' .env && sed -i "s/^WEB_TAG=.*/WEB_TAG=$1/" .env || echo "WEB_TAG=$1" >> .env; }
+          set_tag "$TAG"
+          if docker compose pull --quiet web && docker compose up -d --no-deps --wait web; then
+            docker image prune -f >/dev/null
+            echo "web is on $TAG"
+          else
+            echo "::error::web $TAG did not become healthy; rolling back to ${PREV:-latest}"
+            set_tag "${PREV:-latest}"
+            docker compose up -d --no-deps --wait web || true
+            exit 1
+          fi
           REMOTE
