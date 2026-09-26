@@ -158,9 +158,20 @@ export interface HistoryMessage {
   createdAt: Iso
   /** Present ONLY on your own messages. Absent on other people's and on system rows. */
   clientMsgId?: string
-  /** `user`, or a system kind. Tolerate unknown values. */
+  /** `user`, `call`, or a system kind. Tolerate unknown values. */
   kind: string
   targetUserId: string | null
+  /** Set on `call` rows only. The row's `senderId` is the caller. */
+  call?: CallMessageDetails | null
+}
+
+export interface CallMessageDetails {
+  callId: string
+  media: string
+  /** `completed` | `missed` | `canceled` | `declined` — tolerate unknown values. */
+  outcome: string
+  /** Talk time. Null when the call was never answered. */
+  durationSeconds: number | null
 }
 
 export interface MessageHistoryResponse {

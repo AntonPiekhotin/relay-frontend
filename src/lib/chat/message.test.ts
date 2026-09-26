@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { fromHistoryRow, fromMessageNew, mergeMessages } from './message'
+import {
+  fromHistoryRow,
+  fromMessageCall,
+  fromMessageNew,
+  isCallMessage,
+  isSystemMessage,
+  isUnreadCall,
+  mergeMessages,
+} from './message'
 import type { ChatMessage } from './message'
 import type { HistoryMessage } from '@/lib/api/types'
 
@@ -104,5 +112,52 @@ describe('message merge', () => {
   it('treats receiving a message you already hold as normal', () => {
     const row = fromHistoryRow(historyRow)
     expect(mergeMessages([row], [row, row])).toHaveLength(1)
+  })
+})
+
+describe('call rows', () => {
+  const frame = {
+    message_id: 'm-call',
+    dialog_id: 'd-1',
+    caller_id: 'them',
+    call_id: 'call-1',
+    media: 'video',
+    outcome: 'missed',
+    duration_s: null,
+    created_at: '2026-07-26T10:00:05.000Z',
+  }
+
+  it('merges the live frame and the history row into one call row', () => {
+    const live = fromMessageCall(frame)
+    const history = fromHistoryRow({
+      messageId: 'm-call',
+      dialogId: 'd-1',
+      senderId: 'them',
+      text: '',
+      createdAt: frame.created_at,
+      kind: 'call',
+      targetUserId: null,
+      call: { callId: 'call-1', media: 'video', outcome: 'missed', durationSeconds: null },
+    })
+
+    const merged = mergeMessages([live], [history])
+    expect(merged).toHaveLength(1)
+    expect(merged[0]?.call).toEqual(history.call)
+    expect(isCallMessage(live)).toBe(true)
+    expect(isSystemMessage(live)).toBe(false)
+  })
+
+  it('counts a call as unread only for a callee who never picked up', () => {
+    expect(isUnreadCall('them', 'missed', 'me')).toBe(true)
+    expect(isUnreadCall('them', 'canceled', 'me')).toBe(true)
+    expect(isUnreadCall('them', 'completed', 'me')).toBe(false)
+    expect(isUnreadCall('them', 'declined', 'me')).toBe(false)
+    expect(isUnreadCall('me', 'missed', 'me')).toBe(false)
+  })
+
+  it('renders an unknown call kind without call details as a neutral system row', () => {
+    const row = fromHistoryRow({ ...foreignRow('m-x', frame.created_at), kind: 'call' })
+    expect(isCallMessage(row)).toBe(false)
+    expect(isSystemMessage(row)).toBe(true)
   })
 })

@@ -9,12 +9,16 @@
  * replace it; otherwise deduplicate on `messageId`.
  */
 
-import type { HistoryMessage } from '@/lib/api/types'
-import type { Iso, MessageNewPayload, MessageSystemPayload } from '@/lib/protocol/types'
+import type { CallMessageDetails, HistoryMessage } from '@/lib/api/types'
+import type { Iso, MessageCallPayload, MessageNewPayload, MessageSystemPayload } from '@/lib/protocol/types'
 import type { OutboxEntry } from '@/stores/outboxStore'
 import { toMillis } from '@/lib/time'
 
 export const USER_MESSAGE_KIND = 'user'
+export const CALL_MESSAGE_KIND = 'call'
+
+/** The outcomes the callee never picked up — the only call rows the server counts as unread. */
+const UNREAD_CALL_OUTCOMES: ReadonlySet<string> = new Set(['missed', 'canceled'])
 
 /** There is no `DELIVERED`: nothing in the protocol would ever set it (docs/MESSAGING.md §1). */
 export type MessageState = 'PENDING' | 'SENT' | 'FAILED'
@@ -35,10 +39,21 @@ export interface ChatMessage {
   state: MessageState
   /** The dialog's current title — only carried by a `message.system` frame. */
   title?: string | null
+  /** Set on `call` rows only; `senderId` is then the caller. */
+  call?: CallMessageDetails | null
 }
 
 export function isSystemMessage(message: ChatMessage): boolean {
-  return message.kind !== USER_MESSAGE_KIND
+  return message.kind !== USER_MESSAGE_KIND && !isCallMessage(message)
+}
+
+export function isCallMessage(message: ChatMessage): boolean {
+  return message.kind === CALL_MESSAGE_KIND && Boolean(message.call)
+}
+
+/** Mirrors the server's unread count: a call is unread only to a callee who never picked up. */
+export function isUnreadCall(callerId: string, outcome: string, myId: string | null): boolean {
+  return callerId !== myId && UNREAD_CALL_OUTCOMES.has(outcome)
 }
 
 export function fromHistoryRow(row: HistoryMessage): ChatMessage {
@@ -55,6 +70,27 @@ export function fromHistoryRow(row: HistoryMessage): ChatMessage {
     kind: row.kind,
     targetUserId: row.targetUserId,
     state: 'SENT',
+    call: row.call ?? null,
+  }
+}
+
+export function fromMessageCall(payload: MessageCallPayload): ChatMessage {
+  return {
+    messageId: payload.message_id,
+    clientMsgId: null,
+    dialogId: payload.dialog_id,
+    senderId: payload.caller_id,
+    text: '',
+    createdAt: payload.created_at,
+    kind: CALL_MESSAGE_KIND,
+    targetUserId: null,
+    state: 'SENT',
+    call: {
+      callId: payload.call_id,
+      media: payload.media,
+      outcome: payload.outcome,
+      durationSeconds: payload.duration_s,
+    },
   }
 }
 

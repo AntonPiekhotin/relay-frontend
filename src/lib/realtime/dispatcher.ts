@@ -18,6 +18,7 @@ import type {
   DialogDeletedPayload,
   ErrorPayload,
   InboundEnvelope,
+  MessageCallPayload,
   MessageNewPayload,
   MessageReadInPayload,
   MessageSystemPayload,
@@ -34,7 +35,7 @@ import { currentUserId, signOut } from '@/stores/authStore'
 import { bumpDialog, dropDialog, insertHistoryMessages, setDialogUnread } from '@/queries/historyCache'
 import { applyReadFrame } from '@/queries/useReadState'
 import { qk } from '@/queries/keys'
-import { USER_MESSAGE_KIND, fromMessageNew, fromMessageSystem } from '@/lib/chat/message'
+import { USER_MESSAGE_KIND, fromMessageCall, fromMessageNew, fromMessageSystem, isUnreadCall } from '@/lib/chat/message'
 import type { ChatMessage } from '@/lib/chat/message'
 import type { DialogListResponse, DialogSummary } from '@/lib/api/types'
 import { failDirectCall, handleDirectSignal } from '@/lib/calls/directCall'
@@ -64,6 +65,9 @@ export function dispatchFrame(frame: InboundEnvelope, ctx: DispatchContext): voi
       break
     case 'message.system':
       handleMessageSystem(payloadOf<MessageSystemPayload>(frame), ctx)
+      break
+    case 'message.call':
+      handleMessageCall(payloadOf<MessageCallPayload>(frame), ctx)
       break
     case 'presence.update':
       // An unrecognised status is offline, not an error — the store owns that tolerance.
@@ -222,6 +226,18 @@ function handleMessageSystem(payload: MessageSystemPayload, ctx: DispatchContext
     void ctx.queryClient.invalidateQueries({ queryKey: qk.dialog(payload.dialog_id) })
     void ctx.queryClient.invalidateQueries({ queryKey: qk.dialogs })
   }
+}
+
+/**
+ * A direct call ended and became a row in the pair's chat — sent to both parties, every device.
+ * The badge moves only for a call you never picked up, exactly as the server's `unreadCount` does.
+ */
+function handleMessageCall(payload: MessageCallPayload, ctx: DispatchContext): void {
+  insertHistoryMessages(ctx.queryClient, payload.dialog_id, [fromMessageCall(payload)])
+  bumpDialog(ctx.queryClient, payload.dialog_id, {
+    lastMessageAt: payload.created_at,
+    incrementUnread: isUnreadCall(payload.caller_id, payload.outcome, currentUserId()),
+  })
 }
 
 function updateDialogTitle(ctx: DispatchContext, dialogId: string, title: string): void {

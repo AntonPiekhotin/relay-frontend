@@ -134,6 +134,12 @@ export const en = {
     readMark: 'Read',
     sentMark: 'Sent',
     notSent: 'Not sent.',
+    callOutgoing: (video: boolean): string => (video ? 'Outgoing video call' : 'Outgoing call'),
+    callIncoming: (video: boolean): string => (video ? 'Incoming video call' : 'Incoming call'),
+    callMissed: (video: boolean): string => (video ? 'Missed video call' : 'Missed call'),
+    callNoAnswer: (video: boolean): string => (video ? 'Video call, no answer' : 'Call, no answer'),
+    callCanceled: (video: boolean): string => (video ? 'Canceled video call' : 'Canceled call'),
+    callDeclined: (video: boolean): string => (video ? 'Declined video call' : 'Declined call'),
   },
 
   /** System messages are composed client-side from ids (docs/MESSAGING.md §6) — so they localize. */

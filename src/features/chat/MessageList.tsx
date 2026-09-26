@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { formatDaySeparator, isSameDay } from '@/lib/time'
-import { isSystemMessage } from '@/lib/chat/message'
+import { isCallMessage, isSystemMessage } from '@/lib/chat/message'
 import type { ChatMessage } from '@/lib/chat/message'
 import { displayName, useUser } from '@/queries/useUser'
 import { Spinner } from '@/components/Spinner'
 import { EmptyState } from '@/components/EmptyState'
 import { MessageRow } from './MessageRow'
 import { SystemMessageRow } from './SystemMessageRow'
+import { CallMessageRow } from './CallMessageRow'
 import { useT } from '@/lib/i18n'
 
 export interface MessageListProps {
@@ -148,7 +149,9 @@ export function MessageList({
                 </p>
               ) : null}
               <ul>
-                {isSystemMessage(message) ? (
+                {isCallMessage(message) ? (
+                  <CallMessageRow message={message} isMine={message.senderId === myId} />
+                ) : isSystemMessage(message) ? (
                   <SystemMessageRow message={message} dialogTitle={dialogTitle} />
                 ) : (
                   <MessageRowWithSender

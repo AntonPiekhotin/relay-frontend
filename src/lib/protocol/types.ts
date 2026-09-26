@@ -152,6 +152,25 @@ export interface MessageSystemPayload {
   created_at: Iso
 }
 
+/**
+ * How a direct call ended. `missed` and `canceled` (the caller gave up while it rang) are the ones
+ * the callee never picked up, and the only ones that count as unread. Tolerate unknown values.
+ */
+export type CallOutcome = 'completed' | 'missed' | 'canceled' | 'declined'
+
+/** A direct call that ended, as a row in the pair's chat. Same `message_id` as its history row. */
+export interface MessageCallPayload {
+  message_id: string
+  dialog_id: string
+  caller_id: string
+  call_id: string
+  media: CallMedia | string
+  outcome: CallOutcome | string
+  /** Talk time. Null when the call was never answered. */
+  duration_s: number | null
+  created_at: Iso
+}
+
 export interface DialogDeletedPayload {
   dialog_id: string
   actor_id: string
