@@ -10,12 +10,11 @@
  */
 
 import { getIceServers } from '@/lib/api/calls'
-import { sendCallFrame } from '@/lib/realtime/connection'
+import { sendCallFrame, sendCallHangup } from '@/lib/realtime/connection'
 import { useCallStore } from '@/stores/callStore'
 import type {
   CallSignal,
   CallAcceptPayload,
-  CallHangupPayload,
   CallIcePayload,
   CallInvitePayload,
   CallMedia,
@@ -35,6 +34,9 @@ import { translate } from '@/lib/i18n'
  * picks the member for a known verb once it has been matched.
  */
 type SignalOf<V extends string> = Extract<CallSignal, { verb: V }>
+
+/** The server's own `end_reason` for a call that died under its participants. */
+const DISCONNECTED_REASON = 'disconnected'
 
 let pc: RTCPeerConnection | null = null
 let localStream: MediaStream | null = null
@@ -186,11 +188,7 @@ export function rejectIncomingCall(reason?: string): void {
 export function hangUpDirectCall(reason?: string): void {
   const call = useCallStore.getState().call
   if (call.kind !== 'outgoing' && call.kind !== 'connected') return
-  sendCallFrame<CallHangupPayload>(
-    'call.hangup',
-    { call_id: call.callId, ...(reason ? { reason } : {}) },
-    call.callId,
-  )
+  sendCallHangup({ call_id: call.callId, ...(reason ? { reason } : {}) })
   teardown()
   // No notice — the user pressed the button and knows why the screen went away. The tone is just
   // the confirmation that the press landed.
@@ -326,6 +324,8 @@ function directCallErrorMessage(code: string): string {
   switch (code) {
     case 'USER_BUSY':
       return t.calls.userBusy
+    case 'ALREADY_IN_CALL':
+      return t.calls.alreadyInCall
     case 'CALL_NOT_FOUND':
     case 'INVALID_CALL_STATE':
       return t.calls.callGone
@@ -365,7 +365,11 @@ async function createPeerConnection(callId: string): Promise<void> {
   }
 
   connection.onconnectionstatechange = () => {
-    if (connection.connectionState === 'failed') endCall(translate().calls.connectionDropped)
+    if (connection.connectionState !== 'failed') return
+    // The server cannot see WebRTC. Without a hangup it keeps the call `answered` for as long as
+    // both sockets stay up — no chat row, and both users refused as busy on the next call.
+    sendCallHangup({ call_id: callId, reason: DISCONNECTED_REASON })
+    endCall(translate().calls.connectionDropped)
   }
 }
 

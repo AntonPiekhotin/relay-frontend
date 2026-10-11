@@ -8,6 +8,7 @@ import { RelaySocket } from '@/lib/protocol/socket'
 import type { SocketStatus } from '@/lib/protocol/socket'
 import { makeFrame } from '@/lib/protocol/codec'
 import type {
+  CallHangupPayload,
   DialogRefPayload,
   MessageReadOutPayload,
   MessageSendPayload,
@@ -69,6 +70,7 @@ export function stopRealtime(): void {
   sentReads.clear()
   lastTypingAt.clear()
   callFrames.clear()
+  pendingHangups.clear()
   // Signing out with a call up would leave the camera light on: nothing else stops those tracks.
   teardownDirectCall()
   teardownGroup()
@@ -110,6 +112,9 @@ export function getOpenDialog(): string | null {
  */
 async function onSessionConnected(): Promise<void> {
   if (!queryClient) return
+
+  // First, and before any catch-up: until it lands, both users of that call are still busy.
+  flushPendingHangups()
 
   await runReconnectSequence(queryClient, {
     openDialogId,
@@ -257,6 +262,26 @@ export function sendCallFrame<T>(type: OutboundFrameType, payload: T, callId: st
   const frame = makeFrame<T>(type, payload)
   rememberCallFrame(frame.id, callId)
   return socket?.send(frame) ?? false
+}
+
+/**
+ * Hang up, now or on the next connect. Every other call frame is worthless late, but a hangup is
+ * idempotent and nothing else frees the call server-side: one whose media died while this socket
+ * was down stays `answered`, with both users busy, until somebody hangs it up.
+ */
+export function sendCallHangup(payload: CallHangupPayload): void {
+  if (!sendCallFrame<CallHangupPayload>('call.hangup', payload, payload.call_id)) {
+    pendingHangups.set(payload.call_id, payload)
+  }
+}
+
+const pendingHangups = new Map<string, CallHangupPayload>()
+
+function flushPendingHangups(): void {
+  for (const [callId, payload] of pendingHangups) {
+    if (!sendCallFrame<CallHangupPayload>('call.hangup', payload, callId)) return
+    pendingHangups.delete(callId)
+  }
 }
 
 /** Bounded: ICE trickles in bursts, and an un-answered frame id is only interesting briefly. */

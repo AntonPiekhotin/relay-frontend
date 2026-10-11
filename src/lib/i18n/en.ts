@@ -269,6 +269,7 @@ export const en = {
     theyHungUp: 'They hung up.',
     noAnswer: 'No answer.',
     userBusy: 'They are already on another call.',
+    alreadyInCall: 'You are already in a call. Hang up there first.',
     callGone: 'That call is no longer available.',
     notAParticipant: 'You are not part of that call.',
     notConnected: 'The call could not be connected.',
