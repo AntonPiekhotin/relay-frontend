@@ -28,6 +28,7 @@ function toHistoryRow(message: ChatMessage): HistoryMessage {
     createdAt: message.createdAt,
     kind: message.kind,
     targetUserId: message.targetUserId,
+    call: message.call ?? null,
   }
   // `clientMsgId` is present only on your own rows — never write an empty one, or the merge would
   // key other people's messages on it.
